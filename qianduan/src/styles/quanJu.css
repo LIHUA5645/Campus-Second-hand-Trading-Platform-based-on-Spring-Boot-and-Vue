@@ -1,61 +1,61 @@
 /* 作者：肖沐樑 QQ：3387432690  全局主题样式 */
-:ro‍‍‍‌‌‌​​‌ot {
-  --zhuSe‌​‌​‌‌: #2f6bff;
-  --zhuSeShen: #1b​‌‌‌‌​4fd6;
-  --qingS‌‌‌​‌‌e: #15c5b8;
-  --chengSe: #ff7a‌‌‌​​‌45;
-  --hongSe: #f‌‌‌​‌​5395b;
-  --ziSe​​​​‌​: #7c5cff;
-  --beiJ​‌​‌‌​ing: #f4f6fb;
-  --wenZi​​‌​​​: #1f2733;
-  --wenZiE​​​‌​​r: #667085;
-  --wenZiSan: #98a2‌​‌​​‌b3;
-  --bianKuang: #eef‌​​​​‌1f6;
-  --yuanJiao​‌‌‌​‌: 16px;
+:root {
+  --zhuSe: #2f6bff;
+  --zhuSeShen: #1b4fd6;
+  --qingSe: #15c5b8;
+  --chengSe: #ff7a45;
+  --hongSe: #f5395b;
+  --ziSe: #7c5cff;
+  --beiJing: #f4f6fb;
+  --wenZi: #1f2733;
+  --wenZiEr: #667085;
+  --wenZiSan: #98a2b3;
+  --bianKuang: #eef1f6;
+  --yuanJiao: 16px;
   --banYing: 0 8px 30px rgba(31, 39, 51, 0.08);
-  --zhuTiDu: linear-g‌​​‌‌​radient(135deg, #2f6bff 0%, #15c5b8 100%);
+  --zhuTiDu: linear-gradient(135deg, #2f6bff 0%, #15c5b8 100%);
 }
 
-* { box-sizing: border-box​​​‌​​; }
+* { box-sizing: border-box; }
 
-html, body, #app { mar‌​​​​​gin: 0; padding: 0; }
+html, body, #app { margin: 0; padding: 0; }
 
-body​‌​‌​ {
-  backgrou​​‌​‌nd: var(--beiJing);
-  color: v​‌​​​ar(--wenZi);
-  f‌‌‌‌​ont-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
-  -we‌‌‌‌‌bkit-font-smoothing: antialiased;
+body {
+  background: var(--beiJing);
+  color: var(--wenZi);
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-.zhuTiWen​‌‌‌‌Zi {
-  background: var(--zhuTiDu​​‌​​);
+.zhuTiWenZi {
+  background: var(--zhuTiDu);
   -webkit-background-clip: text;
   background-clip: text;
-  color: transpar‌‌​‌​ent;
+  color: transparent;
 }
 
-.kePi​​‌‌​an {
-  backgr​‌​​​ound: #fff;
-  border-radius: var(--yuanJiao‌‌​​​);
-  box-shadow: var​​​‌‌(--banYing);
+.kePian {
+  background: #fff;
+  border-radius: var(--yuanJiao);
+  box-shadow: var(--banYing);
 }
 
-.zhuTiAn​‌​​​Niu {
-  background: var​‌‌​‌(--zhuTiDu);
-  border: none‌‌​​‌;
+.zhuTiAnNiu {
+  background: var(--zhuTiDu);
+  border: none;
   color: #fff;
-  font-weig‌​‌​​ht: 600;
-  bo​​‌‌​rder-radius: 999px;
-  box​​‌​​-shadow: 0 6px 16px rgba(47, 107, 255, 0.28);
-  transition: transform .15s ease, b‌‌‌​​ox-shadow .15s ease;
+  font-weight: 600;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(47, 107, 255, 0.28);
+  transition: transform .15s ease, box-shadow .15s ease;
 }
-.zhuTiAnNiu:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba‌​​‌‌(47, 107, 255, 0.34); }
+.zhuTiAnNiu:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(47, 107, 255, 0.34); }
 
-.rongQi { max-width: 1200p​​‌‌​x; margin: 0 auto; padding: 0 24px; }
+.rongQi { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 
 /* 通用商品占位图：无图时显示渐变 + 图标，保证版面不空 */
 .tuPianZhanWei {
-  display​‌‌​‌: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135de‌‌​​‌g, #e9f0ff 0%, #e6fbf6 100%);
-  color: #9bb‌‌​​​‍‍‍4ff;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #e9f0ff 0%, #e6fbf6 100%);
+  color: #9bb4ff;
 }

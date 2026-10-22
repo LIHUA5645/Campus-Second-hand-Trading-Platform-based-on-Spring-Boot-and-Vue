@@ -1,9 +1,10 @@
 // 作者：肖沐樑 QQ：3387432690
-package co‍‍‍‌‌‌​​‌‌​‌​‌‌​‌‌‌‌​‌‌‌​‌‌‌‌‌​​‌‌‌‌​‌​​​​​‌​​‌m.ershoujiaoyi.repository;
+package com.ershoujiaoyi.repository;
 
-imp​‌‌​​​‌​​​​​​‌​​‌​‌​​‌‌​​​​‌​‌‌‌​‌‌​​‌‌​​​​ort com.ershoujiaoyi.entity.YongHu;
-import org.springframework.d‌​​‌​​​​​​‌​‌​​​‌​‌​‌​​​‌‌‌‌​‌‌‌‌‌​‌‌‌‌​​‌​ata.jpa.repository.JpaRepository;
+import com.ershoujiaoyi.entity.YongHu;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-public interface​‌‌​‌​​​‌‌​​‌​​​‌‌​​​​​​‌‌​‌​​​​‌‌​‌‌‌​​‌‌​ YongHuRepository extends JpaRepository<YongHu, Long> {
-    YongHu fi‌​​​​‌‌​​​‌​​‌‌‌​​‌​​‌‌​​‌‌​​‌‌​‌‌‌​​‌‌‌​​​‍‍‍ndByYongHuMing(String yongHuMing);
+public interface YongHuRepository extends JpaRepository<YongHu, Long>, JpaSpecificationExecutor<YongHu> {
+    YongHu findByYongHuMing(String yongHuMing);
 }

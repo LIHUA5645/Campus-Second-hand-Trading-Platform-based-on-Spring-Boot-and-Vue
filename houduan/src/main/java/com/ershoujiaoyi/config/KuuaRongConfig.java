@@ -1,18 +1,18 @@
 // 作者：肖沐樑 QQ：3387432690
-packa‍‍‍‌‌‌​​‌‌​‌​‌‌​‌‌‌‌​‌‌ge com.ershoujiaoyi.config;
+package com.ershoujiaoyi.config;
 
-import org.springframework.con‌​‌‌‌‌‌​​‌‌‌‌​‌​​​​​text.annotation.Configuration;
-import org.springframework.web.servlet.config.annotat‌​​‌​‌‌​​​‌​​​​​​‌​​ion.CorsRegistry;
-import org‌​‌​​‌‌​​​​‌​‌‌‌​‌‌​.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-public class KuuaRongConfig implements Web​‌‌​​​​‌​​‌​​​​​​‌​‌MvcConfigurer {
+public class KuuaRongConfig implements WebMvcConfigurer {
     @Override
-    publ​​​‌​‌​‌​​​‌‌‌‌​‌‌‌‌ic void addCorsMappings(CorsRegistry registry) {
-        registry.addMap‌​‌‌‌‌​​‌​​‌‌​‌​​​‌‌ping("/**")
-                .all​​‌​​​‌‌​​​​​​‌‌​‌​owedOriginPatterns("*")
-                .allowedMet​​​‌‌​‌‌‌​​‌‌​‌​​​​hods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedH‌‌​​​‌​​‌‌‌​​‌​​‌‌​eaders("*")
-                .allowCredentials(true​‌‌​​‌‌​‌‌‌​​‌‌‌​​​‍‍‍);
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOriginPatterns("*")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }

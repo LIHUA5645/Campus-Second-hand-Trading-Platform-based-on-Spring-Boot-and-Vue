@@ -1,19 +1,19 @@
 // 作者：肖沐樑 QQ：3387432690
-package com.ershoujiao‍‍‍‌‌‌​​‌‌​‌​‌‌​‌‌‌‌​‌‌yi.entity;
+package com.ershoujiaoyi.entity;
 
-im‌​‌‌‌‌‌​​‌‌‌‌​‌​​​​​port jakarta.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
-@Table(n‌​​‌​‌‌​​​‌​​​​​​‌​​ame = "fen_lei")
-pub‌​‌​​‌‌​​​​‌​‌‌‌​‌‌​lic class FenLei {
+@Table(name = "fen_lei")
+public class FenLei {
     @Id
-    @GeneratedValue(stra​‌‌​​​​‌​​‌​​​​​​‌​‌tegy = GenerationType.IDENTITY)
-    private Lon​​​‌​‌​‌​​​‌‌‌‌​‌‌‌‌g id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    private String‌​‌‌‌‌​​‌​​‌‌​‌​​​‌‌ mingCheng;
+    private String mingCheng;
 
-    public Long​​‌​​​‌‌​​​​​​‌‌​‌​ getId() { return id; }
-    public void s​​​‌‌​‌‌‌​​‌‌​‌​​​​etId(Long id) { this.id = id; }
-    public String getM‌‌​​​‌​​‌‌‌​​‌​​‌‌​ingCheng() { return mingCheng; }
-    public void setMingCheng(String mingCheng) { this.mingChe​‌‌​​‌‌​‌‌‌​​‌‌‌​​​‍‍‍ng = mingCheng; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getMingCheng() { return mingCheng; }
+    public void setMingCheng(String mingCheng) { this.mingCheng = mingCheng; }
 }
