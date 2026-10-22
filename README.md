@@ -18,6 +18,7 @@
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white&style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-2ea44f?style=flat-square)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)
+[![Star on Gitee](https://gitee.com/zhang-san-zhangshan/esjypt/badge/star.svg?theme=dark)](https://gitee.com/zhang-san-zhangshan/esjypt)
 
 </div>
 
@@ -122,7 +123,11 @@ npm run dev
 | :---: | :---: |
 | <img src="images/zhifu_weixin.jpg" width="160" /> | <img src="images/zhifu_zhifubao.jpg" width="160" /> |
 
-也欢迎在 GitHub / Gitee 给个 ⭐ Star。
+如果觉得这个项目帮到了你，欢迎点个 ⭐ Star 支持一下：
+
+👉 [在 Gitee 上 Star](https://gitee.com/zhang-san-zhangshan/esjypt)
+
+> 如果你也在 GitHub 上托管了本项目，把仓库地址发我，我顺手把 GitHub Star 链接也加上。
 
 ## 📄 开源许可
 
