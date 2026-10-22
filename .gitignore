@@ -1,0 +1,15 @@
+# 本文件不纳入版本控制（详见《开源规则说明.md》版本控制规则）
+开源规则说明.md
+
+# 依赖与构建产物
+node_modules/
+dist/
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
