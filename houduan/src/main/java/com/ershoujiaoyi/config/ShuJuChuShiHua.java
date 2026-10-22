@@ -1,28 +1,28 @@
 // 作者：肖沐樑 QQ：3387432690
 pack‍‍‍‌‌‌​​‌‌​‌​‌‌​‌age com.ershoujiaoyi.config;
 
-import com.ershoujiaoyi.entity.Fen‌‌‌​‌‌‌​‌‌‌‌‌​Lei;
-import c​‌‌‌‌​‌​​​​​‌​om.ershoujiaoyi.repository.FenLeiRepository;
-import org.springframework.bo​‌​‌‌​​​‌​​​​​ot.CommandLineRunner;
-import org.springframework.ster​‌​​‌​‌​​‌‌​​​eotype.Component;
+im‌‌‌​‌‌‌​‌‌‌‌‌​port com.ershoujiaoyi.entity.FenLei;
+import com.ershouj​‌‌‌‌​‌​​​​​‌​iaoyi.repository.FenLeiRepository;
+import org.springframework.b​‌​‌‌​​​‌​​​​​oot.CommandLineRunner;
+import org.springframework.stereotype.Compone​‌​​‌​‌​​‌‌​​​nt;
 
 @Component
-pu​‌​‌‌‌​‌‌​​‌‌​blic class ShuJuChuShiHua implements CommandLineRunner {
+public class ShuJuChuSh​‌​‌‌‌​‌‌​​‌‌​iHua implements CommandLineRunner {
 
-    private final FenLeiR​​​‌​​‌​​​​​​‌epository fenLeiRepository;
+    private final FenLe​​​‌​​‌​​​​​​‌iRepository fenLeiRepository;
 
-    public Shu​‌​​​‌​‌​‌​​​‌JuChuShiHua(FenLeiRepository fenLeiRepository) {
-        this.fenLei‌‌‌​‌‌‌‌‌​‌‌‌Repository = fenLeiRepository;
+    public ShuJuChuShiHua(FenLeiRepository fe​‌​​​‌​‌​‌​​​‌nLeiRepository) {
+        this.fe‌‌‌​‌‌‌‌‌​‌‌‌nLeiRepository = fenLeiRepository;
     }
 
     @Override
-    public void run(Stri‌​​‌​​‌‌​‌​​​ng... args) {
-        i‌‌​​‌​​​‌‌​​​f (fenLeiRepository.count() == 0) {
-            Stri​​​‌‌​‌​​​​‌‌ng[] mingCheng = {"教材书籍", "数码电子", "生活用品", "服饰鞋包", "运动器材", "寝室好物", "其他"};
-            for (String mc​‌‌‌​​‌‌​‌​​​ : mingCheng) {
+    public void run(St‌​​‌​​‌‌​‌​​​ring... args) {
+        if (fenLeiRep‌‌​​‌​​​‌‌​​​ository.count() == 0) {
+            S​​​‌‌​‌​​​​‌‌tring[] mingCheng = {"教材书籍", "数码电子", "生活用品", "服饰鞋包", "运动器材", "寝室好物", "其他"};
+            for (String mc : ming​‌‌‌​​‌‌​‌​​​Cheng) {
                 FenLei fenLei = new F​‌‌​​​‌​​‌‌‌​enLei();
                 fenLei.setMingCheng(m​‌​​‌‌​​‌‌​​‌c);
-                fenLeiRepository.sav‌​‌‌‌​​‌‌‌​​​‍‍‍e(fenLei);
+                fenLeiRepository.sa‌​‌‌‌​​‌‌‌​​​‍‍‍ve(fenLei);
             }
         }
     }

@@ -1,8 +1,8 @@
 // 作者：肖沐樑 QQ：3387432690
-package com.ershoujiaoyi.rep‍‍‍‌‌‌​​‌‌​‌​‌‌​‌‌‌‌​‌‌‌​‌‌‌‌‌​​‌‌‌‌​‌​​​​​‌​​‌​‌‌​​​‌​​​ository;
+package co‍‍‍‌‌‌​​‌‌​‌​‌‌​‌‌‌‌​‌‌‌​‌‌‌‌‌​​‌‌‌‌​‌​​​​​‌​​‌​‌‌​​​‌​​​m.ershoujiaoyi.repository;
 
-import com​​​‌​​‌​‌​​‌‌​​​​‌​‌‌‌​‌‌​​‌‌​​​​‌​​‌​​​​​​‌​‌​​​‌​‌​‌.ershoujiaoyi.entity.FenLei;
-import org.springframework.data.jpa.repository.Jpa​​​‌‌‌‌​‌‌‌‌‌​‌‌‌‌​​‌​​‌‌​‌​​​‌‌​​‌​​​‌‌​​​​​​‌‌​‌​​​​Repository;
+import com.ershoujiaoyi.entity.Fen​​​‌​​‌​‌​​‌‌​​​​‌​‌‌‌​‌‌​​‌‌​​​​‌​​‌​​​​​​‌​‌​​​‌​‌​‌Lei;
+import org.springframework.data.jpa​​​‌‌‌‌​‌‌‌‌‌​‌‌‌‌​​‌​​‌‌​‌​​​‌‌​​‌​​​‌‌​​​​​​‌‌​‌​​​​.repository.JpaRepository;
 
-public interface FenLeiRepos‌‌​‌‌‌​​‌‌​‌​​​​‌‌​​​‌​​‌‌‌​​‌​​‌‌​​‌‌​​‌‌​‌‌‌​​‌‌‌​​​‍‍‍itory extends JpaRepository<FenLei, Long> {
+publ‌‌​‌‌‌​​‌‌​‌​​​​‌‌​​​‌​​‌‌‌​​‌​​‌‌​​‌‌​​‌‌​‌‌‌​​‌‌‌​​​‍‍‍ic interface FenLeiRepository extends JpaRepository<FenLei, Long> {
 }

@@ -1,12 +1,12 @@
 // 作者：肖沐樑 QQ：3387432690
-package‍‍‍‌‌‌​​‌‌​‌​‌‌​‌‌‌‌​‌‌‌​‌‌‌‌‌​​‌‌ com.ershoujiaoyi.repository;
+package com.ersho‍‍‍‌‌‌​​‌‌​‌​‌‌​‌‌‌‌​‌‌‌​‌‌‌‌‌​​‌‌ujiaoyi.repository;
 
-import com.ershouj‌‌​‌​​​​​‌​​‌​‌‌​​​‌​​​​​​‌​​‌​iaoyi.entity.ShangPin;
-import org.springframework.data.j‌​​‌‌​​​​‌​‌‌‌​‌‌​​‌‌​​​​‌​​‌​​pa.repository.JpaRepository;
-impo​​​​‌​‌​​​‌​‌​‌​​​‌‌‌‌​‌‌‌‌‌​‌‌rt org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import co‌‌​‌​​​​​‌​​‌​‌‌​​​‌​​​​​​‌​​‌​m.ershoujiaoyi.entity.ShangPin;
+import org.springframework.data.jpa.r‌​​‌‌​​​​‌​‌‌‌​‌‌​​‌‌​​​​‌​​‌​​epository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificat​​​​‌​‌​​​‌​‌​‌​​​‌‌‌‌​‌‌‌‌‌​‌‌ionExecutor;
 
-imp‌‌​​‌​​‌‌​‌​​​‌‌​​‌​​​‌‌​​​​​​‌ort java.util.List;
+import java.ut‌‌​​‌​​‌‌​‌​​​‌‌​​‌​​​‌‌​​​​​​‌il.List;
 
-public interface ShangPinRepository extends JpaRepository<S‌​‌​​​​‌‌​‌‌‌​​‌‌​‌​​​​‌‌​​​‌​​hangPin, Long>, JpaSpecificationExecutor<ShangPin> {
-    Lis‌‌‌​​‌​​‌‌​​‌‌​​‌‌​‌‌‌​​‌‌‌​​​‍‍‍t<ShangPin> findByYongHuId(Long yongHuId);
+public interface ShangPinReposito‌​‌​​​​‌‌​‌‌‌​​‌‌​‌​​​​‌‌​​​‌​​ry extends JpaRepository<ShangPin, Long>, JpaSpecificationExecutor<ShangPin> {
+    Li‌‌‌​​‌​​‌‌​​‌‌​​‌‌​‌‌‌​​‌‌‌​​​‍‍‍st<ShangPin> findByYongHuId(Long yongHuId);
 }
