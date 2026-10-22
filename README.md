@@ -1,85 +1,132 @@
-> 版权作者（软著）：添砖 Java QQ：2047419378
-> 项目所有者：肖沐樑 QQ：3387432690
+<div align="center">
 
-# 校园二手交易平台（Spring Boot + Vue）
+<img src="docs/logo.png" width="118" alt="校园二手交易平台 Logo" />
 
-大家好，我是**肖沐樑**，这是我自己动手做的基于 Spring Boot + Vue 的**校园二手交易平台**，
-也是一套开源的毕业设计模板。前后端我已经完整打通，克隆下来清掉水印就能跑，方便大家二次开发或做毕设演示。
+# 校园二手交易平台
 
-## 关于作者与版权
+**让校园里的闲置，流动起来**
 
-- 我是本项目的所有者：**肖沐樑（QQ：3387432690）**。
-- 本项目的软件著作权登记在 **添砖 Java（QQ：2047419378）** 名下。
-- 技术交流 / 添砖 Java：QQ 2047419378 ｜ 商务合作：19877380122。
+*基于 Spring Boot 3 + Vue 3 的校园二手交易平台 · 开源毕业设计模板*
 
-## 技术栈
+<br/>
 
-| 层 | 技术 | 版本 |
-|----|------|------|
-| 后端 | Spring Boot | 3.4.5 |
-| 后端 | Java | 21（JDK 21+ 均可编译运行，我用 JDK 25 也跑通了） |
-| 后端 | 持久化 | Spring Data JPA + MySQL |
-| 前端 | Vue | 3.4 |
-| 前端 | Vite | 6 |
-| 前端 | Element Plus | 2.6 |
-| 命名 | 变量 / 包名 | 全部使用拼音 |
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-6DB33F?logo=springboot&logoColor=white&style=flat-square)
+![Vue](https://img.shields.io/badge/Vue-3.4-42B883?logo=vuedotjs&logoColor=white&style=flat-square)
+![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white&style=flat-square)
+![Element Plus](https://img.shields.io/badge/Element%20Plus-2.6-409EFF?logo=element&logoColor=white&style=flat-square)
+![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white&style=flat-square)
+![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white&style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-2ea44f?style=flat-square)
+![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)
 
-## 目录结构
+</div>
 
-- `houduan/`：Spring Boot 后端（Maven 工程）
-  - `src/main/java/com/ershoujiaoyi/`：启动类、controller、entity、repository、config
-  - `src/main/resources/application.yml`：数据库连接配置
-- `qianduan/`：Vue3 前端（Vite 工程）
-  - `src/views/`：登录、首页、商品详情、发布、订单、个人中心
-  - `src/components/DaShang.vue`：右下角悬浮打赏
-  - `src/api/jieKou.js`：后端接口封装
-  - `public/images/`：两张收款码（我自己的真实收款码）
-- `images/`：两张收款码原图（和前端引用一致）
-- `shui_yin.py`：零宽字符隐形水印工具（打水印 / 校验 / 清除）
-- `开发计划.md` / `修复记录文档.md`：开发过程与改动留痕
+---
 
-## 环境要求
+## 💡 为什么做它
 
-- JDK 21 或更高（我用 JDK 25 验证过）
-- Node.js 18 或更高（我用 Node 24 验证 `npm run build` 通过）
-- Maven 3.6+
-- MySQL 8（本机用用户 `root`、密码 `sjk123456`，库名 `ershoupingtai`，已开启 `createDatabaseIfNotExist` 自动建库）
+校园里每年都有大量教材、数码、生活用品在角落吃灰，而另一边又有同学正需要它们。
+于是我把它做成了一个**真正能跑起来的完整项目**：登录注册、发布商品、分类检索、下单交易、
+订单状态流转，前后端全部打通，可以直接用来做毕设演示，也可以作为你二次开发的地基。
 
-## 怎么跑起来（重要）
+## ✨ 项目亮点
 
-我在源码里按《开源规则说明》打了**零宽字符隐形水印**（署名：添砖 Java）。
-水印会改变代码里的标识符，所以**没清除水印的源码不能直接编译运行**——这是为了防止代码外流被白嫖。
-你自己要跑的话，先清掉水印（仓库根目录自带 `shui_yin.py`）：
+| 能力 | 说明 |
+| --- | --- |
+| 🔐 账户体系 | 注册 / 登录 / 个人资料，登录态前端持久化 |
+| 🛍️ 商品市场 | 发布、关键词搜索、分类筛选、分页浏览、详情、编辑、下架 |
+| 🏷️ 分类管理 | 首次启动自动写入默认分类，后续可自由扩展 |
+| 📦 订单交易 | 一键下单、我的订单（我买的 / 我卖出的）、状态机流转 |
+| 🎨 精致 UI | Element Plus 组件 + 卡片式布局 + 右下角悬浮打赏 |
+| 🧬 工程规范 | 全拼音命名、JPA 自动建表、零宽水印防外流 |
+
+## 🚀 快速开始
+
+> ⚠️ 源码已按开源规则注入**零宽字符隐形水印**（署名：添砖 Java），水印会改变标识符，
+> **未清除前无法编译运行**。运行前请先执行第 ① 步。
+
+### ① 清除水印
 
 ```bash
 python shui_yin.py qing houduan/src
 python shui_yin.py qing qianduan/src
 ```
 
-然后：
+### ② 启动后端
 
-1. 后端：进 `houduan`，确认本机 MySQL 已启动（用户 root、密码 sjk123456），
-   执行 `mvn spring-boot:run`（默认 8080，首次启动自动建库并写入默认分类）。
-2. 前端：进 `qianduan`，`npm install` 后 `npm run dev`（默认 5173，已配 `/api` 代理到后端 8080）。
+```bash
+cd houduan
+mvn spring-boot:run
+# 默认 http://localhost:8080，首次启动自动建库并写入默认分类
+```
 
-> 重新对外分发前，可再用 `python shui_yin.py jia houduan/src` 和 `jia qianduan/src` 把水印打回去。
+### ③ 启动前端
 
-## 功能一览
+```bash
+cd qianduan
+npm install
+npm run dev
+# 默认 http://localhost:5173，已配置 /api 代理到后端 8080
+```
 
-- 用户：注册、登录、查看个人信息
-- 商品：发布、列表（关键词 / 分类 / 分页）、详情、编辑、下架、我的商品
-- 分类：首次启动自动写入默认分类、分类列表
-- 订单：下单、我的订单（我买的 / 我卖出的）、状态流转（待发货 → 待收货 → 已完成 / 取消）
+## 🗄️ 技术栈
 
-## 如果对你有帮助
+| 层 | 技术 | 版本 |
+| --- | --- | --- |
+| 后端框架 | Spring Boot | 3.4.5 |
+| 运行环境 | Java | 21+（JDK 25 亦可） |
+| 持久化 | Spring Data JPA + MySQL | 8 |
+| 前端框架 | Vue | 3.4 |
+| 构建工具 | Vite | 6 |
+| UI 组件库 | Element Plus | 2.6 |
 
-- 欢迎在 GitHub / Gitee 给个 Star ⭐
-- 也欢迎打赏支持我，请喝杯奶茶：
+## 📦 目录结构
 
-### 微信收款码
-![微信收款码](images/zhifu_weixin.jpg)
+```text
+.
+├── houduan/                 # Spring Boot 后端
+│   └── src/main/
+│       ├── java/com/ershoujiaoyi/
+│       │   ├── controller/  # 用户 / 商品 / 分类 / 订单
+│       │   ├── entity/      # YongHu / ShangPin / FenLei / DingDan
+│       │   ├── repository/  # JPA 仓库
+│       │   └── config/      # 跨域 / 数据初始化
+│       └── resources/application.yml
+├── qianduan/                # Vue3 前端
+│   ├── src/views/           # 登录 / 首页 / 详情 / 发布 / 订单 / 我的
+│   ├── src/components/      # 悬浮打赏组件
+│   └── public/images/       # 收款码
+├── images/                  # 收款码原图
+├── docs/logo.png            # 项目 Logo
+└── shui_yin.py              # 水印工具（jia / ti / qing）
+```
 
-### 支付宝收款码
-![支付宝收款码](images/zhifu_zhifubao.jpg)
+## 🧩 业务流程
 
-> 版权作者（软著）：添砖 Java QQ：2047419378 ｜ 项目所有者：肖沐樑 QQ：3387432690
+```text
+用户 ─▶ 登录/注册 ─▶ 发布商品 ─▶ 浏览/搜索 ─▶ 下单 ─▶ 订单状态流转
+                                     │
+                                     └─▶ 我的订单 / 我的商品 / 下架
+```
+
+## 🖼️ 界面预览
+
+> 运行后即可看到：首页商品瀑布流、分类导航、商品详情、下单弹窗、订单中心、个人中心，
+> 右下角还有悬浮打赏入口。
+
+## ☕ 赞助作者
+
+如果这个项目帮到了你，欢迎请我喝杯奶茶 👇
+
+| 微信 | 支付宝 |
+| :---: | :---: |
+| <img src="images/zhifu_weixin.jpg" width="160" /> | <img src="images/zhifu_zhifubao.jpg" width="160" /> |
+
+也欢迎在 GitHub / Gitee 给个 ⭐ Star。
+
+## 📄 开源许可
+
+本项目基于 **MIT License** 开源，可自由用于学习与二次开发。
+
+> 项目所有者：**肖沐樑** QQ：3387432690
+> 版权作者（软著）：**添砖 Java** QQ：2047419378
