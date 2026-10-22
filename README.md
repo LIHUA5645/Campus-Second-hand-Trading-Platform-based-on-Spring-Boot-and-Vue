@@ -39,21 +39,13 @@
 | 🏷️ 分类管理 | 首次启动自动写入默认分类，后续可自由扩展 |
 | 📦 订单交易 | 一键下单、我的订单（我买的 / 我卖出的）、状态机流转 |
 | 🎨 精致 UI | Element Plus 组件 + 卡片式布局 + 右下角悬浮打赏 |
-| 🧬 工程规范 | 全拼音命名、JPA 自动建表、零宽水印防外流 |
+| 🧬 工程规范 | 全拼音命名、JPA 自动建表、开箱即跑 |
 
 ## 🚀 快速开始
 
-> ⚠️ 源码已按开源规则注入**零宽字符隐形水印**（署名：添砖 Java），水印会改变标识符，
-> **未清除前无法编译运行**。运行前请先执行第 ① 步。
+> ✅ 源码**不含任何隐形水印**，克隆下来即可直接编译运行，无需任何预处理步骤。
 
-### ① 清除水印
-
-```bash
-python shui_yin.py qing houduan/src
-python shui_yin.py qing qianduan/src
-```
-
-### ② 启动后端
+### ① 启动后端
 
 ```bash
 cd houduan
@@ -61,7 +53,7 @@ mvn spring-boot:run
 # 默认 http://localhost:8080，首次启动自动建库并写入默认分类
 ```
 
-### ③ 启动前端
+### ② 启动前端
 
 ```bash
 cd qianduan
@@ -98,8 +90,7 @@ npm run dev
 │   ├── src/components/      # 悬浮打赏组件
 │   └── public/images/       # 收款码
 ├── images/                  # 收款码原图
-├── docs/logo.png            # 项目 Logo
-└── shui_yin.py              # 水印工具（jia / ti / qing）
+└── docs/logo.png            # 项目 Logo
 ```
 
 ## 🧩 业务流程
