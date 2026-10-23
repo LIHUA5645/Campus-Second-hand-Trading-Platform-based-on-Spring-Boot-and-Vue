@@ -8,12 +8,6 @@
           <span class="heroBadge">校园闲置 · 安心流转</span>
           <h1>让校园里的<span class="zhuTiWenZiBai">闲置</span><br />流动起来</h1>
           <p>教材、数码、好物低价流转，学长学姐的宝贝等你来淘。</p>
-          <div class="yingXiongSouSuo">
-            <el-input v-model="guanJianCi" size="large" placeholder="想淘点什么？" @keyup.enter="chaXun">
-              <template #prefix><el-icon><Search /></el-icon></template>
-              <template #append><el-button type="primary" size="large" @click="chaXun">搜一搜</el-button></template>
-            </el-input>
-          </div>
           <div class="shuJu">
             <div><b>{{ zongShu || '—' }}</b><span>在售好物</span></div>
             <div><b>{{ fenLeiLieBiao.length || '—' }}</b><span>商品分类</span></div>
@@ -66,8 +60,23 @@
 
       <section class="fenLeiQu">
         <div class="quTou">
-          <h2 class="kuaiBiaoTi"><el-icon><Menu /></el-icon> 全部分类</h2>
-          <span class="quFuZhu">挑一个类目，快速找到心仪好物</span>
+          <div class="quTouZuo">
+            <h2 class="kuaiBiaoTi"><el-icon><Menu /></el-icon> 全部分类</h2>
+            <span class="quFuZhu">挑一个类目，快速找到心仪好物</span>
+          </div>
+          <div class="fenLeiSouSuo">
+            <el-input
+              v-model="guanJianCi"
+              size="large"
+              placeholder="想淘点什么？搜标题试试"
+              clearable
+              @keyup.enter="chaXun"
+              @clear="chaXun"
+            >
+              <template #prefix><el-icon><Search /></el-icon></template>
+              <template #append><el-button type="primary" size="large" @click="chaXun">搜一搜</el-button></template>
+            </el-input>
+          </div>
         </div>
         <div class="fenLeiWangGe">
           <div :class="['fenLeiKaPian', xuanZhongFenLei === null ? 'xuanZhong' : '']" @click="xuanFenLei(null)">
@@ -75,6 +84,26 @@
           </div>
           <div v-for="f in fenLeiLieBiao" :key="f.id" :class="['fenLeiKaPian', xuanZhongFenLei === f.id ? 'xuanZhong' : '']" @click="xuanFenLei(f.id)">
             <el-icon class="fenLeiTuBiao"><Goods /></el-icon><span>{{ f.mingCheng }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="tuiJianQu" v-if="tuiJianLie.length">
+        <div class="quTou">
+          <div class="quTouZuo">
+            <h2 class="kuaiBiaoTi"><el-icon><MagicStick /></el-icon> 猜你喜欢</h2>
+            <span class="quFuZhu">协同过滤挑出来的同款口味，按浏览与成交记录实时更新</span>
+          </div>
+        </div>
+        <div class="tuiJianLie">
+          <div v-for="sp in tuiJianLie" :key="sp.id" class="tuiJianKaPian" @click="luYou.push('/shangpin/' + sp.id)">
+            <div class="tuiJianTu">
+              <img v-if="sp.tuPian" :src="sp.tuPian" :alt="sp.biaoTi" />
+              <div v-else class="tuPianZhanWei"><el-icon><Picture /></el-icon></div>
+              <span class="tuiJianJiaGe">￥{{ sp.jiaGe }}</span>
+            </div>
+            <div class="tuiJianMing">{{ sp.biaoTi }}</div>
+            <div class="tuiJianRen"><el-icon><User /></el-icon> {{ sp.yongHuMing || '匿名' }}</div>
           </div>
         </div>
       </section>
@@ -133,6 +162,7 @@ const guanJianCi = ref('')
 const fenLeiLieBiao = ref([])
 const xuanZhongFenLei = ref(null)
 const shangPinLieBiao = ref([])
+const tuiJianLie = ref([])
 const zongShu = ref(0)
 const yeMa = ref(0)
 const meiYe = 12
@@ -176,6 +206,15 @@ const jiaZaiShangPin = async () => {
   }
 }
 
+const jiaZaiTuiJian = async () => {
+  try {
+    const res = await jieKou.tuiJianLieBiao(dangQianYongHu.value ? dangQianYongHu.value.id : null, 8)
+    if (res.data.chengGong) tuiJianLie.value = res.data.lieBiao || []
+  } catch (e) {
+    // 推荐接口异常不影响首页主流程
+  }
+}
+
 const chaXun = () => { yeMa.value = 0; jiaZaiShangPin() }
 const xuanFenLei = (id) => { xuanZhongFenLei.value = id; yeMa.value = 0; jiaZaiShangPin() }
 const fanYe = (p) => { yeMa.value = p - 1; jiaZaiShangPin() }
@@ -186,6 +225,7 @@ onMounted(() => {
   huoQuYongHu()
   jiaZaiFenLei()
   jiaZaiZhanDian()
+  jiaZaiTuiJian()
   guanJianCi.value = luYouXin.query.kw || ''
   jiaZaiShangPin()
 })
@@ -280,29 +320,10 @@ onMounted(() => {
   font-weight: 800;
   letter-spacing: .5px;
 }
-.yingXiongZuo p { font-size: 16px; color: rgba(255, 255, 255, .78); margin: 0 0 26px; }
+.yingXiongZuo p { font-size: 16px; color: rgba(255, 255, 255, .78); margin: 0; }
 .zhuTiWenZiBai { color: #fff; text-shadow: 0 2px 18px rgba(255, 196, 120, .35); }
 
-.yingXiongSouSuo { max-width: 480px; }
-.yingXiongSouSuo :deep(.el-input__wrapper) {
-  border-radius: 999px;
-  padding-left: 18px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
-}
-.yingXiongSouSuo :deep(.el-input-group__append) {
-  background: transparent;
-  box-shadow: none;
-  padding: 0;
-  border: none;
-}
-.yingXiongSouSuo :deep(.el-input-group__append) .el-button {
-  border-radius: 999px;
-  margin-left: 6px;
-  height: 40px;
-  padding: 0 22px;
-}
-
-.shuJu { display: flex; gap: 40px; margin-top: 32px; }
+.shuJu { display: flex; gap: 44px; margin-top: 30px; }
 .shuJu div { display: flex; flex-direction: column; }
 .shuJu b { font-size: 28px; font-weight: 800; }
 .shuJu span { font-size: 13px; color: rgba(255, 255, 255, .62); margin-top: 3px; }
@@ -459,7 +480,8 @@ onMounted(() => {
 .fuBiao3 { bottom: 22px; left: 12px; }
 
 /* ===== 区块标题 ===== */
-.quTou { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+.quTou { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.quTouZuo { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
 .kuaiBiaoTi {
   display: flex;
   align-items: center;
@@ -471,11 +493,49 @@ onMounted(() => {
 .kuaiBiaoTi .el-icon { color: var(--zhuSe); font-size: 22px; }
 .quFuZhu { font-size: 13px; color: var(--wenZiSan); }
 
-/* ===== 分类 ===== */
+/* ===== 分类（含搜索） ===== */
+.fenLeiQu {
+  margin-top: 24px;
+  padding: 6px 22px 22px;
+  background: #fff;
+  border: 1px solid var(--bianKuang);
+  border-radius: 22px;
+  box-shadow: var(--banYing);
+}
+.fenLeiQu .kuaiBiaoTi { margin: 20px 0 0; }
+.fenLeiSouSuo { width: 380px; max-width: 100%; }
+.fenLeiSouSuo :deep(.el-input__wrapper) {
+  border-radius: 999px;
+  padding-left: 18px;
+  background: var(--beiJing);
+  box-shadow: none;
+  border: 1px solid transparent;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.fenLeiSouSuo :deep(.el-input__wrapper:hover) { border-color: #cfe0ff; background: #fff; }
+.fenLeiSouSuo :deep(.el-input__wrapper.is-focus) {
+  background: #fff;
+  border-color: var(--zhuSe);
+  box-shadow: 0 0 0 4px rgba(47, 107, 255, .10);
+}
+.fenLeiSouSuo :deep(.el-input-group__append) {
+  background: transparent;
+  box-shadow: none;
+  padding: 0 0 0 8px;
+  border: none;
+}
+.fenLeiSouSuo :deep(.el-input-group__append) .el-button {
+  border-radius: 999px;
+  height: 40px;
+  padding: 0 24px;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(47, 107, 255, .25);
+}
 .fenLeiWangGe {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 14px;
+  margin-top: 20px;
 }
 .fenLeiKaPian {
   display: flex;
@@ -483,13 +543,19 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   padding: 18px 10px;
-  background: #fff;
+  background: var(--beiJing);
   border-radius: 16px;
   cursor: pointer;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-  border: 1px solid var(--bianKuang);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+  border: 1px solid transparent;
 }
-.fenLeiKaPian:hover { transform: translateY(-4px); box-shadow: var(--banYing); border-color: #d7e2ff; }
+.fenLeiKaPian:hover {
+  transform: translateY(-4px);
+  background: #fff;
+  border-color: #d7e2ff;
+  box-shadow: 0 12px 26px rgba(23, 43, 77, .10);
+}
+.fenLeiKaPian:hover .fenLeiTuBiao { transform: scale(1.08); }
 .fenLeiTuBiao {
   font-size: 22px;
   width: 46px;
@@ -566,11 +632,86 @@ onMounted(() => {
 .jiaGe { color: var(--hongSe); font-weight: 800; font-size: 16px; }
 .fenYe { display: flex; justify-content: center; margin-top: 28px; }
 
+/* ===== 猜你喜欢（协同过滤推荐） ===== */
+.tuiJianQu { margin-top: 34px; }
+.tuiJianLie {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  margin-top: 4px;
+}
+.tuiJianKaPian {
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid var(--bianKuang);
+  border-radius: 16px;
+  padding: 10px 10px 12px;
+  box-shadow: var(--banYing);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+.tuiJianKaPian:hover {
+  transform: translateY(-4px);
+  border-color: var(--zhuSe);
+  box-shadow: 0 14px 30px rgba(47, 107, 255, .16);
+}
+.tuiJianTu {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--beiJing);
+}
+.tuiJianTu img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tuiJianTu .tuPianZhanWei {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wenZiSan);
+  font-size: 26px;
+}
+.tuiJianJiaGe {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .55);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tuiJianMing {
+  margin-top: 9px;
+  font-size: 13.5px;
+  color: var(--wenZi);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tuiJianRen {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--wenZiSan);
+}
+
 @media (max-width: 880px) {
   .yingXiongYou { display: none; }
   .yingXiongZuo h1 { font-size: 32px; }
   .yingXiongNei { padding: 44px 24px; }
   .shuJu { gap: 24px; }
   .shuJu b { font-size: 24px; }
+  .fenLeiQu { padding: 6px 16px 18px; border-radius: 18px; }
+  .fenLeiSouSuo { width: 100%; }
+  .quTou { align-items: flex-start; }
 }
 </style>
+
