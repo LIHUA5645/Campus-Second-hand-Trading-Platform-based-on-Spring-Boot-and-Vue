@@ -93,26 +93,6 @@
         </div>
       </section>
 
-      <section class="tuiJianQu" v-if="tuiJianLie.length">
-        <div class="quTou">
-          <div class="quTouZuo">
-            <h2 class="kuaiBiaoTi"><el-icon><MagicStick /></el-icon> 猜你喜欢</h2>
-            <span class="quFuZhu">协同过滤挑出来的同款口味，按浏览与成交记录实时更新</span>
-          </div>
-        </div>
-        <div class="tuiJianLie">
-          <div v-for="sp in tuiJianLie" :key="sp.id" class="tuiJianKaPian" @click="luYou.push('/shangpin/' + sp.id)">
-            <div class="tuiJianTu">
-              <img v-if="sp.tuPian" :src="sp.tuPian" :alt="sp.biaoTi" />
-              <div v-else class="tuPianZhanWei"><el-icon><Picture /></el-icon></div>
-              <span class="tuiJianJiaGe">￥{{ sp.jiaGe }}</span>
-            </div>
-            <div class="tuiJianMing">{{ sp.biaoTi }}</div>
-            <div class="tuiJianRen"><el-icon><User /></el-icon> {{ sp.yongHuMing || '匿名' }}</div>
-          </div>
-        </div>
-      </section>
-
       <section class="shangPinQu">
         <div class="shangPinTou">
           <div class="shangPinTouWen">
@@ -152,6 +132,26 @@
 
         <div class="fenYe" v-if="zongShu > meiYe">
           <el-pagination layout="prev, pager, next" :total="zongShu" :page-size="meiYe" :current-page="yeMa + 1" @current-change="fanYe" />
+        </div>
+      </section>
+
+      <section class="tuiJianQu" v-if="tuiJianLie.length">
+        <div class="quTou">
+          <div class="quTouZuo">
+            <h2 class="kuaiBiaoTi"><el-icon><MagicStick /></el-icon> 猜你喜欢</h2>
+            <span class="quFuZhu">协同过滤挑出来的同款口味，按浏览与成交记录实时更新</span>
+          </div>
+        </div>
+        <div class="tuiJianLie">
+          <div v-for="sp in tuiJianLie" :key="sp.id" class="tuiJianKaPian" @click="luYou.push('/shangpin/' + sp.id)">
+            <div class="tuiJianTu">
+              <img v-if="sp.tuPian" :src="sp.tuPian" :alt="sp.biaoTi" />
+              <div v-else class="tuPianZhanWei"><el-icon><Picture /></el-icon></div>
+              <span class="tuiJianJiaGe">￥{{ sp.jiaGe }}</span>
+            </div>
+            <div class="tuiJianMing">{{ sp.biaoTi }}</div>
+            <div class="tuiJianRen"><el-icon><User /></el-icon> {{ sp.yongHuMing || '匿名' }}</div>
+          </div>
         </div>
       </section>
     </div>
