@@ -64,18 +64,21 @@
             <h2 class="kuaiBiaoTi"><el-icon><Menu /></el-icon> 全部分类</h2>
             <span class="quFuZhu">挑一个类目，快速找到心仪好物</span>
           </div>
-          <div class="fenLeiSouSuo">
-            <el-input
+          <div :class="['fenLeiSouSuo', souSuoJiaoDian ? 'jiaoDian' : '']">
+            <el-icon class="souSuoTuBiao"><Search /></el-icon>
+            <input
               v-model="guanJianCi"
-              size="large"
-              placeholder="想淘点什么？搜标题试试"
-              clearable
+              class="souSuoShuRu"
+              type="text"
+              placeholder="搜索教材、数码、生活用品…"
               @keyup.enter="chaXun"
-              @clear="chaXun"
-            >
-              <template #prefix><el-icon><Search /></el-icon></template>
-              <template #append><el-button type="primary" size="large" @click="chaXun">搜一搜</el-button></template>
-            </el-input>
+              @focus="souSuoJiaoDian = true"
+              @blur="souSuoJiaoDian = false"
+            />
+            <el-icon v-if="guanJianCi" class="souSuoQingKong" @click="qingKongSouSuo"><Close /></el-icon>
+            <button type="button" class="souSuoAnNiu" @click="chaXun">
+              <el-icon><Search /></el-icon><span>搜一搜</span>
+            </button>
           </div>
         </div>
         <div class="fenLeiWangGe">
@@ -83,7 +86,7 @@
             <el-icon class="fenLeiTuBiao"><Grid /></el-icon><span>全部</span>
           </div>
           <div v-for="f in fenLeiLieBiao" :key="f.id" :class="['fenLeiKaPian', xuanZhongFenLei === f.id ? 'xuanZhong' : '']" @click="xuanFenLei(f.id)">
-            <el-icon class="fenLeiTuBiao"><Goods /></el-icon><span>{{ f.mingCheng }}</span>
+            <el-icon class="fenLeiTuBiao"><component :is="fenLeiTuBiao(f.mingCheng)" /></el-icon><span>{{ f.mingCheng }}</span>
           </div>
         </div>
       </section>
@@ -112,13 +115,21 @@
         <div class="shangPinTou">
           <div class="shangPinTouWen">
             <h2 class="kuaiBiaoTi"><el-icon><Goods /></el-icon> 好物市场</h2>
-            <p class="shangPinFuZhu">每天都有同学发布新的闲置，先到先得～</p>
+            <div class="shangPinFuZhuHang">
+              <p class="shangPinFuZhu">
+                <template v-if="yiSouSuo">为你找到 {{ zongShu }} 件与「{{ yiSouSuo }}」相关的闲置</template>
+                <template v-else>每天都有同学发布新的闲置，先到先得～</template>
+              </p>
+              <span v-if="yiSouSuo" class="qingSouSuo" @click="qingKongSouSuo">
+                <el-icon><Close /></el-icon> 清除搜索
+              </span>
+            </div>
           </div>
           <el-button v-if="dangQianYongHu" type="primary" round @click="luYou.push('/fabu')"><el-icon><Plus /></el-icon> 发布闲置</el-button>
         </div>
 
         <div v-if="shangPinLieBiao.length === 0" class="kongZhuangTai">
-          <el-empty description="暂无在售商品，快来发布第一个吧～" />
+          <el-empty :description="yiSouSuo ? '没有找到与「' + yiSouSuo + '」相关的闲置，换个关键词试试～' : '暂无在售商品，快来发布第一个吧～'" />
         </div>
         <div v-else class="wangGe">
           <div v-for="sp in shangPinLieBiao" :key="sp.id" class="shangPinKaPian" @click="luYou.push('/shangpin/' + sp.id)">
@@ -146,7 +157,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import jieKou from '@/api/jieKou'
 
@@ -159,7 +170,19 @@ const lunBoRef = ref(null)
 const dangQianLunBo = ref(0)
 const tiaoLunBo = (i) => { if (lunBoRef.value) lunBoRef.value.setActiveItem(i) }
 const guanJianCi = ref('')
+const yiSouSuo = ref('')
+const souSuoJiaoDian = ref(false)
 const fenLeiLieBiao = ref([])
+// 按分类名称挑图标，比统一用购物袋更好认
+const fenLeiTuBiao = (mingCheng) => ({
+  教材书籍: 'Reading',
+  数码电子: 'Cellphone',
+  生活用品: 'House',
+  服饰鞋包: 'Handbag',
+  运动器材: 'Basketball',
+  寝室好物: 'OfficeBuilding',
+  其他: 'Box'
+}[mingCheng] || 'Goods')
 const xuanZhongFenLei = ref(null)
 const shangPinLieBiao = ref([])
 const tuiJianLie = ref([])
@@ -215,11 +238,31 @@ const jiaZaiTuiJian = async () => {
   }
 }
 
-const chaXun = () => { yeMa.value = 0; jiaZaiShangPin() }
+const chaXun = () => {
+  yeMa.value = 0
+  yiSouSuo.value = guanJianCi.value.trim()
+  jiaZaiShangPin()
+  // 搜索后把「好物市场」滚到视口，避免点了看不到结果
+  nextTick(() => {
+    const qu = document.querySelector('.shangPinQu')
+    if (qu) qu.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+}
+const qingKongSouSuo = () => {
+  guanJianCi.value = ''
+  yiSouSuo.value = ''
+  yeMa.value = 0
+  jiaZaiShangPin()
+}
 const xuanFenLei = (id) => { xuanZhongFenLei.value = id; yeMa.value = 0; jiaZaiShangPin() }
 const fanYe = (p) => { yeMa.value = p - 1; jiaZaiShangPin() }
 
-watch(() => luYouXin.query.kw, (kw) => { guanJianCi.value = kw || ''; yeMa.value = 0; jiaZaiShangPin() })
+watch(() => luYouXin.query.kw, (kw) => {
+  guanJianCi.value = kw || ''
+  yiSouSuo.value = kw || ''
+  yeMa.value = 0
+  jiaZaiShangPin()
+})
 
 onMounted(() => {
   huoQuYongHu()
@@ -227,6 +270,7 @@ onMounted(() => {
   jiaZaiZhanDian()
   jiaZaiTuiJian()
   guanJianCi.value = luYouXin.query.kw || ''
+  yiSouSuo.value = guanJianCi.value.trim()
   jiaZaiShangPin()
 })
 </script>
@@ -503,34 +547,63 @@ onMounted(() => {
   box-shadow: var(--banYing);
 }
 .fenLeiQu .kuaiBiaoTi { margin: 20px 0 0; }
-.fenLeiSouSuo { width: 380px; max-width: 100%; }
-.fenLeiSouSuo :deep(.el-input__wrapper) {
+.fenLeiSouSuo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 400px;
+  max-width: 100%;
+  height: 50px;
+  padding: 0 6px 0 18px;
   border-radius: 999px;
-  padding-left: 18px;
   background: var(--beiJing);
-  box-shadow: none;
   border: 1px solid transparent;
-  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
 }
-.fenLeiSouSuo :deep(.el-input__wrapper:hover) { border-color: #cfe0ff; background: #fff; }
-.fenLeiSouSuo :deep(.el-input__wrapper.is-focus) {
+.fenLeiSouSuo:hover { background: #fff; border-color: #d8e3fb; }
+.fenLeiSouSuo.jiaoDian {
   background: #fff;
   border-color: var(--zhuSe);
-  box-shadow: 0 0 0 4px rgba(47, 107, 255, .10);
+  box-shadow: 0 10px 26px rgba(47, 107, 255, .14);
 }
-.fenLeiSouSuo :deep(.el-input-group__append) {
-  background: transparent;
-  box-shadow: none;
-  padding: 0 0 0 8px;
+.souSuoTuBiao { flex-shrink: 0; font-size: 17px; color: #9aa7bd; }
+.fenLeiSouSuo.jiaoDian .souSuoTuBiao { color: var(--zhuSe); }
+.souSuoShuRu {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
   border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14.5px;
+  color: var(--wenZi);
 }
-.fenLeiSouSuo :deep(.el-input-group__append) .el-button {
-  border-radius: 999px;
+.souSuoShuRu::placeholder { color: #9aa7bd; }
+.souSuoQingKong { flex-shrink: 0; font-size: 14px; color: #b3bfd2; cursor: pointer; }
+.souSuoQingKong:hover { color: var(--wenZiEr); }
+.souSuoAnNiu {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   height: 40px;
-  padding: 0 24px;
+  padding: 0 22px;
+  border: none;
+  border-radius: 999px;
+  background: var(--zhuTiDu);
+  color: #fff;
+  font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 8px 18px rgba(47, 107, 255, .25);
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(47, 107, 255, .28);
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
 }
+.souSuoAnNiu:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(47, 107, 255, .34);
+}
+.souSuoAnNiu:active { transform: translateY(0); box-shadow: 0 6px 14px rgba(47, 107, 255, .24); }
 .fenLeiWangGe {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -580,7 +653,21 @@ onMounted(() => {
 /* ===== 商品 ===== */
 .shangPinTou { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .shangPinTouWen .kuaiBiaoTi { margin: 34px 0 6px; }
-.shangPinFuZhu { font-size: 13px; color: var(--wenZiSan); margin: 0 0 16px; }
+.shangPinFuZhuHang { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 16px; }
+.shangPinFuZhu { font-size: 13px; color: var(--wenZiSan); margin: 0; }
+.qingSouSuo {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(47, 107, 255, .08);
+  color: var(--zhuSe);
+  font-size: 12px;
+  cursor: pointer;
+  transition: background .2s ease;
+}
+.qingSouSuo:hover { background: rgba(47, 107, 255, .16); }
 
 .kongZhuangTai {
   background: #fff;
