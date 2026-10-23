@@ -254,17 +254,24 @@
     <!-- 轮播图编辑弹窗 -->
     <el-dialog v-model="lunBoDuiHua" :title="lunBoBiaoDan.id ? '编辑轮播图' : '新增轮播图'" width="580px">
       <el-form :model="lunBoBiaoDan" label-width="90px">
-        <el-form-item label="图片地址">
-          <el-input v-model="lunBoBiaoDan.tuPian" placeholder="点右侧「本地上传」从电脑选图，也可直接粘贴地址">
-            <template #append>
-              <el-button :loading="shangChuanZhong" @click="xuanTuPian">本地上传</el-button>
-            </template>
-          </el-input>
-          <input ref="wenJianShuRu" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="yinCangWenJian" @change="shangChuanTuPian" />
-          <div class="yuLan" v-if="lunBoBiaoDan.tuPian">
-            <img :src="lunBoBiaoDan.tuPian" alt="预览" />
+        <el-form-item label="轮播图片">
+          <div class="tuPianShangChuan">
+            <div class="yuLanKuang" @click="xuanTuPian">
+              <img v-if="lunBoBiaoDan.tuPian" :src="lunBoBiaoDan.tuPian" alt="预览" />
+              <div v-else class="kongTu">
+                <span class="jiaHao">+</span>
+                <span>点击选择本地图片</span>
+              </div>
+              <div class="yuLanZheZhao" v-if="lunBoBiaoDan.tuPian">点击更换图片</div>
+            </div>
+            <div class="caoZuoHang">
+              <el-button class="shangChuanAnNiu" :loading="shangChuanZhong" @click="xuanTuPian">本地上传</el-button>
+              <el-button v-if="lunBoBiaoDan.tuPian" class="caiJianAnNiu" @click="caiJianDangQianTu">裁剪调整</el-button>
+            </div>
+            <el-input v-model="lunBoBiaoDan.tuPian" size="small" placeholder="图片地址，也可直接粘贴外链" />
+            <input ref="wenJianShuRu" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="yinCangWenJian" @change="xuanWenJian" />
+            <div class="biaoDanTiShi">建议 <b>16:9</b> 横图（1920×1080、2048×1152）。选图后可拖动、缩放，框内区域就是首页的展示效果，裁剪后自动上传。</div>
           </div>
-          <div class="biaoDanTiShi">建议上传 <b>16:9</b> 横图（如 1920×1080、2048×1152），首页按 16:9 等比裁剪铺满；分辨率 ≥ 1280×720 更清晰，过大将被裁掉两侧。</div>
         </el-form-item>
         <el-form-item label="主标题"><el-input v-model="lunBoBiaoDan.biaoTi" placeholder="如：校园闲置 · 安心流转" /></el-form-item>
         <el-form-item label="副标题"><el-input v-model="lunBoBiaoDan.fuBiaoTi" placeholder="如：教材 / 数码 / 好物，低价淘" /></el-form-item>
@@ -275,6 +282,28 @@
       <template #footer>
         <el-button @click="lunBoDuiHua = false">取消</el-button>
         <el-button type="primary" @click="baoCunLunBo">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 轮播图裁剪弹窗 -->
+    <el-dialog v-model="caiJianDuiHua" title="裁剪轮播图" width="540px" append-to-body :close-on-click-modal="false">
+      <div class="caiJianTiShi">按住图片拖动位置，滚轮或下方滑块缩放；框内效果即首页 16:9 展示。</div>
+      <div class="caiJianShiKou" @mousedown.prevent="kaiShiTuo" @wheel.prevent="gunLunSuoFang">
+        <img :src="caiJianYuanTu" :style="caiJianTuYangShi" draggable="false" alt="待裁剪图片" />
+        <div class="caiJianBianKuang"></div>
+        <span class="caiJianJiao jiao1"></span>
+        <span class="caiJianJiao jiao2"></span>
+        <span class="caiJianJiao jiao3"></span>
+        <span class="caiJianJiao jiao4"></span>
+      </div>
+      <div class="suoFangHang">
+        <span class="suoFangBiaoQian">缩放</span>
+        <el-slider v-model="suoFangZhi" :min="100" :max="400" :show-tooltip="false" size="small" />
+        <span class="suoFangZhiBaiFen">{{ suoFangZhi }}%</span>
+      </div>
+      <template #footer>
+        <el-button @click="caiJianDuiHua = false">取消</el-button>
+        <el-button class="shangChuanAnNiu" :loading="shangChuanZhong" @click="queRenCaiJian">确定并上传</el-button>
       </template>
     </el-dialog>
 
@@ -294,7 +323,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import jieKou from '@/api/jieKou'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -471,41 +500,112 @@ const baoCunLunBo = async () => {
 }
 const wenJianShuRu = ref(null)
 const shangChuanZhong = ref(false)
+const caiJianDuiHua = ref(false)
+const caiJianYuanTu = ref('')
+const caiJianImg = ref(null)
+const caiJianWeiZhi = ref({ x: 0, y: 0 })
+const suoFangZhi = ref(100)
+const SHI_KUAN = 480
+const SHI_GAO = 270
+
 const xuanTuPian = () => {
   if (wenJianShuRu.value) {
     wenJianShuRu.value.value = ''
     wenJianShuRu.value.click()
   }
 }
-const duQuTuPianChiCun = (wenJian) => new Promise((jue) => {
-  const tu = new Image()
-  const url = URL.createObjectURL(wenJian)
-  tu.onload = () => { jue({ kuan: tu.naturalWidth, gao: tu.naturalHeight }); URL.revokeObjectURL(url) }
-  tu.onerror = () => { jue(null); URL.revokeObjectURL(url) }
-  tu.src = url
+const jiZhunSuoFang = computed(() => {
+  const img = caiJianImg.value
+  if (!img) return 1
+  return Math.max(SHI_KUAN / img.naturalWidth, SHI_GAO / img.naturalHeight)
 })
-const shangChuanTuPian = async (e) => {
+const dangQianSuoFang = computed(() => jiZhunSuoFang.value * (suoFangZhi.value / 100))
+const caiJianTuYangShi = computed(() => {
+  const img = caiJianImg.value
+  if (!img) return {}
+  const bi = dangQianSuoFang.value
+  const kuan = img.naturalWidth * bi
+  const gao = img.naturalHeight * bi
+  return {
+    width: kuan + 'px',
+    height: gao + 'px',
+    left: (SHI_KUAN - kuan) / 2 + caiJianWeiZhi.value.x + 'px',
+    top: (SHI_GAO - gao) / 2 + caiJianWeiZhi.value.y + 'px'
+  }
+})
+const yueShuWeiZhi = () => {
+  const img = caiJianImg.value
+  if (!img) return
+  const bi = dangQianSuoFang.value
+  const maxX = Math.max(0, (img.naturalWidth * bi - SHI_KUAN) / 2)
+  const maxY = Math.max(0, (img.naturalHeight * bi - SHI_GAO) / 2)
+  caiJianWeiZhi.value.x = Math.min(maxX, Math.max(-maxX, caiJianWeiZhi.value.x))
+  caiJianWeiZhi.value.y = Math.min(maxY, Math.max(-maxY, caiJianWeiZhi.value.y))
+}
+let tuoDongZhong = null
+const tuoYiDong = (e) => {
+  if (!tuoDongZhong) return
+  caiJianWeiZhi.value.x = tuoDongZhong.ox + (e.clientX - tuoDongZhong.cx)
+  caiJianWeiZhi.value.y = tuoDongZhong.oy + (e.clientY - tuoDongZhong.cy)
+  yueShuWeiZhi()
+}
+const jieShuTuoDong = () => {
+  tuoDongZhong = null
+  window.removeEventListener('mousemove', tuoYiDong)
+  window.removeEventListener('mouseup', jieShuTuoDong)
+}
+const kaiShiTuo = (e) => {
+  if (!caiJianImg.value) return
+  tuoDongZhong = { cx: e.clientX, cy: e.clientY, ox: caiJianWeiZhi.value.x, oy: caiJianWeiZhi.value.y }
+  window.addEventListener('mousemove', tuoYiDong)
+  window.addEventListener('mouseup', jieShuTuoDong)
+}
+const gunLunSuoFang = (e) => {
+  const bu = e.deltaY > 0 ? -5 : 5
+  suoFangZhi.value = Math.min(400, Math.max(100, suoFangZhi.value + bu))
+  yueShuWeiZhi()
+}
+watch(suoFangZhi, yueShuWeiZhi)
+
+const daKaiCaiJian = (laiYuan) => {
+  const tu = new Image()
+  tu.onload = () => {
+    caiJianImg.value = tu
+    caiJianWeiZhi.value = { x: 0, y: 0 }
+    suoFangZhi.value = 100
+    caiJianDuiHua.value = true
+  }
+  tu.onerror = () => ElMessage.error('图片加载失败，无法裁剪')
+  tu.src = laiYuan
+}
+const xuanWenJian = (e) => {
   const wenJian = e.target.files && e.target.files[0]
   if (!wenJian) return
   if (wenJian.size > 8 * 1024 * 1024) {
     ElMessage.warning('图片不能超过 8MB')
     return
   }
-  const chiCun = await duQuTuPianChiCun(wenJian)
-  if (chiCun) {
-    const biLi = chiCun.kuan / chiCun.gao
-    if (Math.abs(biLi - 16 / 9) > 0.08) {
-      ElMessage.warning('当前图片 ' + chiCun.kuan + '×' + chiCun.gao + '（非 16:9），首页会裁掉两侧，建议用 16:9 横图')
-    }
+  caiJianYuanTu.value = URL.createObjectURL(wenJian)
+  daKaiCaiJian(caiJianYuanTu.value)
+}
+const caiJianDangQianTu = () => {
+  if (!lunBoBiaoDan.value.tuPian) {
+    ElMessage.warning('还没有图片，请先本地上传')
+    return
   }
+  caiJianYuanTu.value = lunBoBiaoDan.value.tuPian
+  daKaiCaiJian(lunBoBiaoDan.value.tuPian)
+}
+const shangChuanWenJian = async (wenJian, ming) => {
   const biaoDan = new FormData()
-  biaoDan.append('file', wenJian)
+  biaoDan.append('file', wenJian, ming)
   shangChuanZhong.value = true
   try {
     const res = await jieKou.shangChuanTuPian(biaoDan)
     if (res.data.chengGong) {
       lunBoBiaoDan.value.tuPian = res.data.url
-      ElMessage.success('图片已上传，地址已填入')
+      caiJianDuiHua.value = false
+      ElMessage.success('已裁剪并上传，图片地址已填入')
     } else {
       ElMessage.error(res.data.xinXi || '上传失败')
     }
@@ -513,6 +613,34 @@ const shangChuanTuPian = async (e) => {
     ElMessage.error('上传失败，请确认后端已启动且已登录管理员')
   } finally {
     shangChuanZhong.value = false
+  }
+}
+const queRenCaiJian = () => {
+  const img = caiJianImg.value
+  if (!img) return
+  const bi = dangQianSuoFang.value
+  const rw = img.naturalWidth * bi
+  const rh = img.naturalHeight * bi
+  const sx = -((SHI_KUAN - rw) / 2 + caiJianWeiZhi.value.x) / bi
+  const sy = -((SHI_GAO - rh) / 2 + caiJianWeiZhi.value.y) / bi
+  const sw = SHI_KUAN / bi
+  const sh = SHI_GAO / bi
+  const huaBu = document.createElement('canvas')
+  huaBu.width = 1600
+  huaBu.height = 900
+  const ctx = huaBu.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, 1600, 900)
+  ctx.imageSmoothingEnabled = true
+  ctx.imageSmoothingQuality = 'high'
+  try {
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 1600, 900)
+    huaBu.toBlob((blob) => {
+      if (blob) shangChuanWenJian(blob, 'lunbo-' + Date.now() + '.jpg')
+      else ElMessage.error('裁剪失败，请重试')
+    }, 'image/jpeg', 0.92)
+  } catch (err) {
+    ElMessage.error('该图片受跨域限制无法裁剪，请下载后本地上传')
   }
 }
 const qieHuanLunBoZt = async (row) => {
@@ -652,4 +780,85 @@ onMounted(() => {
 
 .biaoDanTiShi { font-size: 12px; color: #909399; line-height: 1.5; margin-top: 6px; }
 .yinCangWenJian { display: none; }
+
+/* ===== 轮播图片上传区 ===== */
+.tuPianShangChuan { width: 100%; max-width: 400px; }
+.yuLanKuang {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #f5f7fb;
+  border: 1px dashed #c9d3e6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.yuLanKuang:hover { border-color: #2f6bff; box-shadow: 0 12px 28px rgba(47, 107, 255, .16); }
+.yuLanKuang img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.kongTu { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #97a3b8; font-size: 12.5px; }
+.kongTu .jiaHao { font-size: 26px; line-height: 1; color: #b9c4d6; }
+.yuLanZheZhao {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 20, 40, .46);
+  color: #fff;
+  font-size: 13px;
+  letter-spacing: .5px;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.yuLanKuang:hover .yuLanZheZhao { opacity: 1; }
+.caoZuoHang { display: flex; gap: 10px; margin: 12px 0 10px; }
+.shangChuanAnNiu {
+  border: none !important;
+  border-radius: 10px !important;
+  height: auto !important;
+  padding: 9px 22px !important;
+  font-weight: 600;
+  color: #fff !important;
+  background: linear-gradient(135deg, #2f6bff 0%, #15c5b8 100%) !important;
+  box-shadow: 0 8px 20px rgba(47, 107, 255, .26);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.shangChuanAnNiu:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(47, 107, 255, .34); }
+.caiJianAnNiu { border-radius: 10px !important; }
+
+/* ===== 裁剪弹窗 ===== */
+.caiJianTiShi { font-size: 12.5px; color: #7a869a; line-height: 1.6; margin-bottom: 12px; }
+.caiJianShiKou {
+  position: relative;
+  width: 480px;
+  height: 270px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #0b1117;
+  cursor: grab;
+  user-select: none;
+}
+.caiJianShiKou:active { cursor: grabbing; }
+.caiJianShiKou img { position: absolute; display: block; max-width: none; pointer-events: none; }
+.caiJianBianKuang {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(255, 255, 255, .92);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .22);
+  pointer-events: none;
+}
+.caiJianJiao { position: absolute; width: 14px; height: 14px; border: 3px solid #fff; pointer-events: none; }
+.jiao1 { left: 0; top: 0; border-right: none; border-bottom: none; }
+.jiao2 { right: 0; top: 0; border-left: none; border-bottom: none; }
+.jiao3 { left: 0; bottom: 0; border-right: none; border-top: none; }
+.jiao4 { right: 0; bottom: 0; border-left: none; border-top: none; }
+.suoFangHang { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 0 4px; }
+.suoFangBiaoQian { font-size: 12.5px; color: #7a869a; flex-shrink: 0; }
+.suoFangHang .el-slider { flex: 1; }
+.suoFangZhiBaiFen { font-size: 12.5px; color: #2f6bff; font-weight: 600; width: 40px; text-align: right; flex-shrink: 0; }
 </style>
