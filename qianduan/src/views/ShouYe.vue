@@ -21,7 +21,7 @@
           </div>
         </div>
         <div class="yingXiongYou">
-          <el-carousel ref="lunBoRef" v-if="lunBoLie.length" height="344px" :interval="4200" indicator-position="none" arrow="hover" class="lunBo" @change="(i) => dangQianLunBo = i">
+          <el-carousel ref="lunBoRef" v-if="lunBoLie.length" height="356px" :interval="4200" indicator-position="none" arrow="hover" class="lunBo" @change="(i) => dangQianLunBo = i">
             <el-carousel-item v-for="(lb, idx) in lunBoLie" :key="lb.id">
               <div class="lunBoXiang" @click="tiaoZhuan(lb.lianJie)">
                 <img :src="lb.tuPian" :alt="lb.biaoTi || '轮播图'" />
@@ -29,7 +29,6 @@
                 <div class="lunBoZheZhao"></div>
                 <span class="lunBoSu">{{ String(idx + 1).padStart(2, '0') }} / {{ String(lunBoLie.length).padStart(2, '0') }}</span>
                 <div class="lunBoKaPian" v-if="lb.biaoTi || lb.fuBiaoTi">
-                  <span class="lunBoMei">校园好物推荐</span>
                   <strong v-if="lb.biaoTi">{{ lb.biaoTi }}</strong>
                   <span v-if="lb.fuBiaoTi" class="lunBoFu">{{ lb.fuBiaoTi }}</span>
                 </div>
@@ -236,23 +235,23 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-/* ===== Hero ===== */
+/* ===== Hero：深墨夜色 + 暖光晕 ===== */
 .yingXiong {
   position: relative;
   overflow: hidden;
   color: #fff;
   border-radius: 0 0 28px 28px;
   background:
-    radial-gradient(circle at 84% 14%, rgba(255, 255, 255, .22) 0, rgba(255, 255, 255, 0) 40%),
-    radial-gradient(circle at 6% 94%, rgba(255, 255, 255, .14) 0, rgba(255, 255, 255, 0) 38%),
-    linear-gradient(120deg, #2f6bff 0%, #2b8bf0 48%, #15c5b8 100%);
+    radial-gradient(760px 400px at 90% 6%, rgba(255, 168, 76, .22) 0%, rgba(255, 168, 76, 0) 62%),
+    radial-gradient(700px 440px at 2% 98%, rgba(20, 184, 166, .20) 0%, rgba(20, 184, 166, 0) 60%),
+    linear-gradient(135deg, #0b1117 0%, #131b24 48%, #0c1520 100%);
 }
 .heroDots {
   position: absolute;
   inset: 0;
   background-image: radial-gradient(rgba(255, 255, 255, .5) 1px, transparent 1px);
   background-size: 22px 22px;
-  opacity: .18;
+  opacity: .12;
   pointer-events: none;
 }
 .yingXiongNei {
@@ -268,8 +267,8 @@ onMounted(() => {
   display: inline-block;
   padding: 5px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .16);
-  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .10);
+  border: 1px solid rgba(255, 255, 255, .20);
   font-size: 13px;
   letter-spacing: .5px;
   margin-bottom: 18px;
@@ -281,14 +280,14 @@ onMounted(() => {
   font-weight: 800;
   letter-spacing: .5px;
 }
-.yingXiongZuo p { font-size: 16px; opacity: .92; margin: 0 0 26px; }
-.zhuTiWenZiBai { color: #fff; text-shadow: 0 2px 14px rgba(0, 0, 0, .2); }
+.yingXiongZuo p { font-size: 16px; color: rgba(255, 255, 255, .78); margin: 0 0 26px; }
+.zhuTiWenZiBai { color: #fff; text-shadow: 0 2px 18px rgba(255, 196, 120, .35); }
 
 .yingXiongSouSuo { max-width: 480px; }
 .yingXiongSouSuo :deep(.el-input__wrapper) {
   border-radius: 999px;
   padding-left: 18px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
 }
 .yingXiongSouSuo :deep(.el-input-group__append) {
   background: transparent;
@@ -306,13 +305,13 @@ onMounted(() => {
 .shuJu { display: flex; gap: 40px; margin-top: 32px; }
 .shuJu div { display: flex; flex-direction: column; }
 .shuJu b { font-size: 28px; font-weight: 800; }
-.shuJu span { font-size: 13px; opacity: .85; margin-top: 3px; }
+.shuJu span { font-size: 13px; color: rgba(255, 255, 255, .62); margin-top: 3px; }
 
 /* Hero 右侧插画 / 轮播图 */
 .yingXiongYou {
   position: relative;
-  width: 520px;
-  height: 344px;
+  width: 540px;
+  height: 356px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -320,98 +319,84 @@ onMounted(() => {
 }
 .lunBo {
   width: 100%;
-  height: 344px;
-  border-radius: 24px;
+  height: 356px;
+  border-radius: 22px;
   overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, .55);
-  box-shadow: 0 26px 54px rgba(8, 24, 50, .30);
+  border: 1px solid rgba(255, 255, 255, .16);
+  box-shadow: 0 30px 64px rgba(0, 0, 0, .55);
 }
-.lunBo :deep(.el-carousel__container) { height: 344px; }
+.lunBo :deep(.el-carousel__container) { height: 356px; }
 .lunBo :deep(.el-carousel__arrow) {
-  width: 34px;
-  height: 34px;
-  background: rgba(8, 24, 50, .42);
+  width: 36px;
+  height: 36px;
+  background: rgba(10, 14, 20, .45);
   border-radius: 50%;
+  backdrop-filter: blur(4px);
 }
-.lunBo :deep(.el-carousel__arrow:hover) { background: rgba(8, 24, 50, .66); }
+.lunBo :deep(.el-carousel__arrow:hover) { background: rgba(10, 14, 20, .72); }
 .lunBo :deep(.el-carousel__arrow) .el-icon { font-size: 16px; }
 
 .lunBoXiang { position: relative; width: 100%; height: 100%; cursor: pointer; overflow: hidden; }
 .lunBoXiang img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s ease; }
-.lunBoXiang:hover img { transform: scale(1.06); }
+.lunBoXiang:hover img { transform: scale(1.04); }
 
-/* 统一品牌色调叠加，弱化原图自带文字与色差 */
+/* 仅在顶部与底部轻压暗，保证图片主体完整可见 */
 .lunBoTian {
   position: absolute;
   inset: 0;
-  background: linear-gradient(125deg, rgba(47, 107, 255, .30), rgba(21, 197, 184, .22));
-  mix-blend-mode: multiply;
+  background: linear-gradient(180deg, rgba(0, 0, 0, .20) 0%, rgba(0, 0, 0, 0) 22%);
+  pointer-events: none;
 }
 .lunBoZheZhao {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg,
-    rgba(8, 20, 42, .12) 0%,
-    rgba(8, 20, 42, 0) 34%,
-    rgba(8, 20, 42, .50) 72%,
-    rgba(8, 20, 42, .82) 100%);
+    rgba(0, 0, 0, 0) 62%,
+    rgba(0, 0, 0, .26) 84%,
+    rgba(0, 0, 0, .52) 100%);
+  pointer-events: none;
 }
 .lunBoSu {
   position: absolute;
   top: 14px;
   right: 16px;
   z-index: 4;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   letter-spacing: .5px;
   color: #fff;
-  background: rgba(8, 20, 42, .35);
+  background: rgba(0, 0, 0, .28);
   padding: 4px 10px;
   border-radius: 999px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
 }
 .lunBoKaPian {
   position: absolute;
   left: 18px;
-  right: 18px;
-  bottom: 36px;
+  right: 92px;
+  bottom: 14px;
   z-index: 3;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, .14);
-  border: 1px solid rgba(255, 255, 255, .34);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 8px 22px rgba(0, 0, 0, .22);
-}
-.lunBoKaPian .lunBoMei {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  background: rgba(47, 107, 255, .85);
-  padding: 3px 9px;
-  border-radius: 999px;
-  margin-bottom: 8px;
 }
 .lunBoKaPian strong {
   display: block;
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 800;
   color: #fff;
   letter-spacing: .5px;
-  text-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, .55);
 }
 .lunBoKaPian .lunBoFu {
   display: block;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, .9);
-  margin-top: 4px;
-  line-height: 1.5;
+  font-size: 12px;
+  color: rgba(255, 255, 255, .88);
+  margin-top: 3px;
+  line-height: 1.45;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, .55);
 }
 .lunBoZhiShiQi {
   position: absolute;
-  left: 18px;
-  bottom: 14px;
+  right: 18px;
+  bottom: 20px;
   z-index: 5;
   display: flex;
   gap: 6px;
@@ -420,7 +405,8 @@ onMounted(() => {
   width: 16px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .45);
+  background: rgba(255, 255, 255, .60);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
   cursor: pointer;
   transition: all .3s ease;
 }
