@@ -287,19 +287,20 @@
 
     <!-- 轮播图裁剪弹窗 -->
     <el-dialog v-model="caiJianDuiHua" title="裁剪轮播图" width="540px" append-to-body :close-on-click-modal="false">
-      <div class="caiJianTiShi">按住图片拖动位置，滚轮或下方滑块缩放；框内效果即首页 16:9 展示。</div>
-      <div class="caiJianShiKou" @mousedown.prevent="kaiShiTuo" @wheel.prevent="gunLunSuoFang">
+      <div class="caiJianTiShi">图片不动，拖动白色取景框选择要展示的区域；下方滑块调整框大小，框内即首页 16:9 效果。</div>
+      <div class="caiJianShiKou">
         <img :src="caiJianYuanTu" :style="caiJianTuYangShi" draggable="false" alt="待裁剪图片" />
-        <div class="caiJianBianKuang"></div>
-        <span class="caiJianJiao jiao1"></span>
-        <span class="caiJianJiao jiao2"></span>
-        <span class="caiJianJiao jiao3"></span>
-        <span class="caiJianJiao jiao4"></span>
+        <div class="caiJianKuang" :style="caiJianKuangYangShi" @mousedown.prevent="kaiShiTuoKuang">
+          <span class="caiJianJiao jiao1"></span>
+          <span class="caiJianJiao jiao2"></span>
+          <span class="caiJianJiao jiao3"></span>
+          <span class="caiJianJiao jiao4"></span>
+        </div>
       </div>
       <div class="suoFangHang">
-        <span class="suoFangBiaoQian">缩放</span>
-        <el-slider v-model="suoFangZhi" :min="100" :max="400" :show-tooltip="false" size="small" />
-        <span class="suoFangZhiBaiFen">{{ suoFangZhi }}%</span>
+        <span class="suoFangBiaoQian">框大小</span>
+        <el-slider v-model="kuangBiLi" :min="20" :max="100" :show-tooltip="false" size="small" />
+        <span class="suoFangZhiBaiFen">{{ kuangBiLi }}%</span>
       </div>
       <template #footer>
         <el-button @click="caiJianDuiHua = false">取消</el-button>
@@ -503,8 +504,8 @@ const shangChuanZhong = ref(false)
 const caiJianDuiHua = ref(false)
 const caiJianYuanTu = ref('')
 const caiJianImg = ref(null)
-const caiJianWeiZhi = ref({ x: 0, y: 0 })
-const suoFangZhi = ref(100)
+const caiJianKuang = ref({ left: 0, top: 0, w: 0, h: 0 })
+const kuangBiLi = ref(100)
 const SHI_KUAN = 480
 const SHI_GAO = 270
 
@@ -514,65 +515,79 @@ const xuanTuPian = () => {
     wenJianShuRu.value.click()
   }
 }
-const jiZhunSuoFang = computed(() => {
+// 图片以 contain 完整显示，算出显示尺寸与位置（图片不动）
+const tuXianShi = computed(() => {
   const img = caiJianImg.value
-  if (!img) return 1
-  return Math.max(SHI_KUAN / img.naturalWidth, SHI_GAO / img.naturalHeight)
+  if (!img) return null
+  const base = Math.min(SHI_KUAN / img.naturalWidth, SHI_GAO / img.naturalHeight)
+  const dw = img.naturalWidth * base
+  const dh = img.naturalHeight * base
+  return { base, dw, dh, imgLeft: (SHI_KUAN - dw) / 2, imgTop: (SHI_GAO - dh) / 2 }
 })
-const dangQianSuoFang = computed(() => jiZhunSuoFang.value * (suoFangZhi.value / 100))
+// 图片内可容纳的最大 16:9 框宽
+const kuangZuiDa = computed(() => {
+  const t = tuXianShi.value
+  if (!t) return 0
+  return Math.min(t.dw, t.dh * 16 / 9)
+})
 const caiJianTuYangShi = computed(() => {
-  const img = caiJianImg.value
-  if (!img) return {}
-  const bi = dangQianSuoFang.value
-  const kuan = img.naturalWidth * bi
-  const gao = img.naturalHeight * bi
-  return {
-    width: kuan + 'px',
-    height: gao + 'px',
-    left: (SHI_KUAN - kuan) / 2 + caiJianWeiZhi.value.x + 'px',
-    top: (SHI_GAO - gao) / 2 + caiJianWeiZhi.value.y + 'px'
-  }
+  const t = tuXianShi.value
+  if (!t) return {}
+  return { left: t.imgLeft + 'px', top: t.imgTop + 'px', width: t.dw + 'px', height: t.dh + 'px' }
 })
-const yueShuWeiZhi = () => {
-  const img = caiJianImg.value
-  if (!img) return
-  const bi = dangQianSuoFang.value
-  const maxX = Math.max(0, (img.naturalWidth * bi - SHI_KUAN) / 2)
-  const maxY = Math.max(0, (img.naturalHeight * bi - SHI_GAO) / 2)
-  caiJianWeiZhi.value.x = Math.min(maxX, Math.max(-maxX, caiJianWeiZhi.value.x))
-  caiJianWeiZhi.value.y = Math.min(maxY, Math.max(-maxY, caiJianWeiZhi.value.y))
+const caiJianKuangYangShi = computed(() => {
+  const k = caiJianKuang.value
+  return { left: k.left + 'px', top: k.top + 'px', width: k.w + 'px', height: k.h + 'px' }
+})
+// 调整框大小（保持中心），并限制在图片范围内
+const gengXinKuang = () => {
+  const t = tuXianShi.value
+  if (!t) return
+  const w = kuangZuiDa.value * kuangBiLi.value / 100
+  const h = w * 9 / 16
+  const k = caiJianKuang.value
+  const cx = k.left + k.w / 2
+  const cy = k.top + k.h / 2
+  let left = cx - w / 2
+  let top = cy - h / 2
+  left = Math.min(t.imgLeft + t.dw - w, Math.max(t.imgLeft, left))
+  top = Math.min(t.imgTop + t.dh - h, Math.max(t.imgTop, top))
+  caiJianKuang.value = { left, top, w, h }
 }
 let tuoDongZhong = null
-const tuoYiDong = (e) => {
+const yiDongKuang = (e) => {
   if (!tuoDongZhong) return
-  caiJianWeiZhi.value.x = tuoDongZhong.ox + (e.clientX - tuoDongZhong.cx)
-  caiJianWeiZhi.value.y = tuoDongZhong.oy + (e.clientY - tuoDongZhong.cy)
-  yueShuWeiZhi()
+  const t = tuXianShi.value
+  if (!t) return
+  const k = caiJianKuang.value
+  let left = tuoDongZhong.ol + (e.clientX - tuoDongZhong.cx)
+  let top = tuoDongZhong.ot + (e.clientY - tuoDongZhong.cy)
+  left = Math.min(t.imgLeft + t.dw - k.w, Math.max(t.imgLeft, left))
+  top = Math.min(t.imgTop + t.dh - k.h, Math.max(t.imgTop, top))
+  caiJianKuang.value = { ...k, left, top }
 }
-const jieShuTuoDong = () => {
+const jieShuTuoKuang = () => {
   tuoDongZhong = null
-  window.removeEventListener('mousemove', tuoYiDong)
-  window.removeEventListener('mouseup', jieShuTuoDong)
+  window.removeEventListener('mousemove', yiDongKuang)
+  window.removeEventListener('mouseup', jieShuTuoKuang)
 }
-const kaiShiTuo = (e) => {
+const kaiShiTuoKuang = (e) => {
   if (!caiJianImg.value) return
-  tuoDongZhong = { cx: e.clientX, cy: e.clientY, ox: caiJianWeiZhi.value.x, oy: caiJianWeiZhi.value.y }
-  window.addEventListener('mousemove', tuoYiDong)
-  window.addEventListener('mouseup', jieShuTuoDong)
+  tuoDongZhong = { cx: e.clientX, cy: e.clientY, ol: caiJianKuang.value.left, ot: caiJianKuang.value.top }
+  window.addEventListener('mousemove', yiDongKuang)
+  window.addEventListener('mouseup', jieShuTuoKuang)
 }
-const gunLunSuoFang = (e) => {
-  const bu = e.deltaY > 0 ? -5 : 5
-  suoFangZhi.value = Math.min(400, Math.max(100, suoFangZhi.value + bu))
-  yueShuWeiZhi()
-}
-watch(suoFangZhi, yueShuWeiZhi)
+watch(kuangBiLi, gengXinKuang)
 
 const daKaiCaiJian = (laiYuan) => {
   const tu = new Image()
   tu.onload = () => {
     caiJianImg.value = tu
-    caiJianWeiZhi.value = { x: 0, y: 0 }
-    suoFangZhi.value = 100
+    kuangBiLi.value = 100
+    const t = tuXianShi.value
+    const w = kuangZuiDa.value
+    const h = w * 9 / 16
+    caiJianKuang.value = { left: t.imgLeft + (t.dw - w) / 2, top: t.imgTop + (t.dh - h) / 2, w, h }
     caiJianDuiHua.value = true
   }
   tu.onerror = () => ElMessage.error('图片加载失败，无法裁剪')
@@ -617,14 +632,13 @@ const shangChuanWenJian = async (wenJian, ming) => {
 }
 const queRenCaiJian = () => {
   const img = caiJianImg.value
-  if (!img) return
-  const bi = dangQianSuoFang.value
-  const rw = img.naturalWidth * bi
-  const rh = img.naturalHeight * bi
-  const sx = -((SHI_KUAN - rw) / 2 + caiJianWeiZhi.value.x) / bi
-  const sy = -((SHI_GAO - rh) / 2 + caiJianWeiZhi.value.y) / bi
-  const sw = SHI_KUAN / bi
-  const sh = SHI_GAO / bi
+  const t = tuXianShi.value
+  if (!img || !t) return
+  const k = caiJianKuang.value
+  const sx = (k.left - t.imgLeft) / t.base
+  const sy = (k.top - t.imgTop) / t.base
+  const sw = k.w / t.base
+  const sh = k.h / t.base
   const huaBu = document.createElement('canvas')
   huaBu.width = 1600
   huaBu.height = 900
@@ -830,7 +844,7 @@ onMounted(() => {
 .shangChuanAnNiu:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(47, 107, 255, .34); }
 .caiJianAnNiu { border-radius: 10px !important; }
 
-/* ===== 裁剪弹窗 ===== */
+/* ===== 裁剪弹窗（移动取景框） ===== */
 .caiJianTiShi { font-size: 12.5px; color: #7a869a; line-height: 1.6; margin-bottom: 12px; }
 .caiJianShiKou {
   position: relative;
@@ -840,23 +854,22 @@ onMounted(() => {
   overflow: hidden;
   border-radius: 8px;
   background: #0b1117;
-  cursor: grab;
   user-select: none;
 }
-.caiJianShiKou:active { cursor: grabbing; }
 .caiJianShiKou img { position: absolute; display: block; max-width: none; pointer-events: none; }
-.caiJianBianKuang {
+.caiJianKuang {
   position: absolute;
-  inset: 0;
-  border: 2px solid rgba(255, 255, 255, .92);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .22);
-  pointer-events: none;
+  box-sizing: border-box;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 9999px rgba(10, 20, 40, .52);
+  cursor: move;
 }
+.caiJianKuang:active { cursor: grabbing; }
 .caiJianJiao { position: absolute; width: 14px; height: 14px; border: 3px solid #fff; pointer-events: none; }
-.jiao1 { left: 0; top: 0; border-right: none; border-bottom: none; }
-.jiao2 { right: 0; top: 0; border-left: none; border-bottom: none; }
-.jiao3 { left: 0; bottom: 0; border-right: none; border-top: none; }
-.jiao4 { right: 0; bottom: 0; border-left: none; border-top: none; }
+.jiao1 { left: -2px; top: -2px; border-right: none; border-bottom: none; }
+.jiao2 { right: -2px; top: -2px; border-left: none; border-bottom: none; }
+.jiao3 { left: -2px; bottom: -2px; border-right: none; border-top: none; }
+.jiao4 { right: -2px; bottom: -2px; border-left: none; border-top: none; }
 .suoFangHang { display: flex; align-items: center; gap: 12px; margin-top: 18px; padding: 0 4px; }
 .suoFangBiaoQian { font-size: 12.5px; color: #7a869a; flex-shrink: 0; }
 .suoFangHang .el-slider { flex: 1; }
