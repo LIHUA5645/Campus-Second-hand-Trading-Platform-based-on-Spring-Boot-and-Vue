@@ -17,6 +17,11 @@ export default defineConfig({
         target: 'http://localhost:8080',
         changeOrigin: true,
         rewrite: (p) => p.replace(/^\/api/, '')
+      },
+      // 后台上传的图片由后端提供，开发环境直接代理过去
+      '/uploads': {
+        target: 'http://localhost:8080',
+        changeOrigin: true
       }
     }
   }

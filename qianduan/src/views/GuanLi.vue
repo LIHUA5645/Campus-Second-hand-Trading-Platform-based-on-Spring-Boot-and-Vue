@@ -255,7 +255,12 @@
     <el-dialog v-model="lunBoDuiHua" :title="lunBoBiaoDan.id ? '编辑轮播图' : '新增轮播图'" width="580px">
       <el-form :model="lunBoBiaoDan" label-width="90px">
         <el-form-item label="图片地址">
-          <el-input v-model="lunBoBiaoDan.tuPian" placeholder="/images/lunbo/banner1.jpg 或 https://..." />
+          <el-input v-model="lunBoBiaoDan.tuPian" placeholder="点右侧「本地上传」从电脑选图，也可直接粘贴地址">
+            <template #append>
+              <el-button :loading="shangChuanZhong" @click="xuanTuPian">本地上传</el-button>
+            </template>
+          </el-input>
+          <input ref="wenJianShuRu" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="yinCangWenJian" @change="shangChuanTuPian" />
           <div class="yuLan" v-if="lunBoBiaoDan.tuPian">
             <img :src="lunBoBiaoDan.tuPian" alt="预览" />
           </div>
@@ -464,6 +469,52 @@ const baoCunLunBo = async () => {
   if (res.data.chengGong) { ElMessage.success('已保存'); lunBoDuiHua.value = false; loadLieBiao() }
   else ElMessage.error(res.data.xinXi || '保存失败')
 }
+const wenJianShuRu = ref(null)
+const shangChuanZhong = ref(false)
+const xuanTuPian = () => {
+  if (wenJianShuRu.value) {
+    wenJianShuRu.value.value = ''
+    wenJianShuRu.value.click()
+  }
+}
+const duQuTuPianChiCun = (wenJian) => new Promise((jue) => {
+  const tu = new Image()
+  const url = URL.createObjectURL(wenJian)
+  tu.onload = () => { jue({ kuan: tu.naturalWidth, gao: tu.naturalHeight }); URL.revokeObjectURL(url) }
+  tu.onerror = () => { jue(null); URL.revokeObjectURL(url) }
+  tu.src = url
+})
+const shangChuanTuPian = async (e) => {
+  const wenJian = e.target.files && e.target.files[0]
+  if (!wenJian) return
+  if (wenJian.size > 8 * 1024 * 1024) {
+    ElMessage.warning('图片不能超过 8MB')
+    return
+  }
+  const chiCun = await duQuTuPianChiCun(wenJian)
+  if (chiCun) {
+    const biLi = chiCun.kuan / chiCun.gao
+    if (Math.abs(biLi - 16 / 9) > 0.08) {
+      ElMessage.warning('当前图片 ' + chiCun.kuan + '×' + chiCun.gao + '（非 16:9），首页会裁掉两侧，建议用 16:9 横图')
+    }
+  }
+  const biaoDan = new FormData()
+  biaoDan.append('file', wenJian)
+  shangChuanZhong.value = true
+  try {
+    const res = await jieKou.shangChuanTuPian(biaoDan)
+    if (res.data.chengGong) {
+      lunBoBiaoDan.value.tuPian = res.data.url
+      ElMessage.success('图片已上传，地址已填入')
+    } else {
+      ElMessage.error(res.data.xinXi || '上传失败')
+    }
+  } catch (err) {
+    ElMessage.error('上传失败，请确认后端已启动且已登录管理员')
+  } finally {
+    shangChuanZhong.value = false
+  }
+}
 const qieHuanLunBoZt = async (row) => {
   const res = await jieKou.adminLunBoZhuangTai(row.id, row.zhuangTai === 0 ? 1 : 0)
   if (res.data.chengGong) { ElMessage.success('已更新'); loadLieBiao() }
@@ -600,4 +651,5 @@ onMounted(() => {
 .fenYe { display: flex; justify-content: center; margin-top: 20px; }
 
 .biaoDanTiShi { font-size: 12px; color: #909399; line-height: 1.5; margin-top: 6px; }
+.yinCangWenJian { display: none; }
 </style>

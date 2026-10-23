@@ -70,5 +70,14 @@ export default {
   // 管理员：权限 / 商品 / 订单
   adminSheZhiGuanLiYuan: (id, shi) => http.post('/admin/yongHu/guanliyuan?id=' + id + '&shi=' + shi),
   adminShangJiaShangPin: (id) => http.post('/admin/shangPin/shangjia?id=' + id),
-  adminShanChuDingDan: (id) => http.post('/admin/dingDan/shanchu?id=' + id)
+  adminShanChuDingDan: (id) => http.post('/admin/dingDan/shanchu?id=' + id),
+
+  // 图片上传（后台选图）
+  shangChuanTuPian: (biaoDan) => http.post('/upload/tuxiang', biaoDan, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id
+    },
+    timeout: 30000
+  })
 }

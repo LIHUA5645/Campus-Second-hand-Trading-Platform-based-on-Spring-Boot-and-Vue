@@ -17,3 +17,7 @@ target/
 # 本地开发日志
 qianduan/dev.log
 qianduan/dev.err
+*.log
+
+# 后台上传的图片（本地运行数据，不入库）
+houduan/upload/
