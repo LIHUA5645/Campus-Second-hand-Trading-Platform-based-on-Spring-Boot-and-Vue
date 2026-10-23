@@ -21,7 +21,7 @@
           </div>
         </div>
         <div class="yingXiongYou">
-          <el-carousel ref="lunBoRef" v-if="lunBoLie.length" height="356px" :interval="4200" indicator-position="none" arrow="hover" class="lunBo" @change="(i) => dangQianLunBo = i">
+          <el-carousel ref="lunBoRef" v-if="lunBoLie.length" height="304px" :interval="4200" indicator-position="none" arrow="hover" class="lunBo" @change="(i) => dangQianLunBo = i">
             <el-carousel-item v-for="(lb, idx) in lunBoLie" :key="lb.id">
               <div class="lunBoXiang" @click="tiaoZhuan(lb.lianJie)">
                 <img :src="lb.tuPian" :alt="lb.biaoTi || '轮播图'" />
@@ -311,7 +311,7 @@ onMounted(() => {
 .yingXiongYou {
   position: relative;
   width: 540px;
-  height: 356px;
+  height: 304px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -319,13 +319,13 @@ onMounted(() => {
 }
 .lunBo {
   width: 100%;
-  height: 356px;
+  height: 304px;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, .16);
   box-shadow: 0 30px 64px rgba(0, 0, 0, .55);
 }
-.lunBo :deep(.el-carousel__container) { height: 356px; }
+.lunBo :deep(.el-carousel__container) { height: 304px; }
 .lunBo :deep(.el-carousel__arrow) {
   width: 36px;
   height: 36px;
