@@ -59,10 +59,20 @@
       </div>
 
       <section class="fenLeiQu">
-        <div class="quTou">
-          <div class="quTouZuo">
-            <h2 class="kuaiBiaoTi"><el-icon><Menu /></el-icon> 全部分类</h2>
-            <span class="quFuZhu">挑一个类目，快速找到心仪好物</span>
+        <div class="fenLeiHang">
+          <span class="fenLeiTou"><el-icon><Menu /></el-icon> 分类</span>
+          <div class="fenLeiLie">
+            <span :class="['fenLeiXiang', xuanZhongFenLei === null ? 'xuanZhong' : '']" @click="xuanFenLei(null)">
+              <el-icon><Grid /></el-icon>全部
+            </span>
+            <span
+              v-for="f in fenLeiLieBiao"
+              :key="f.id"
+              :class="['fenLeiXiang', xuanZhongFenLei === f.id ? 'xuanZhong' : '']"
+              @click="xuanFenLei(f.id)"
+            >
+              <el-icon><component :is="fenLeiTuBiao(f.mingCheng)" /></el-icon>{{ f.mingCheng }}
+            </span>
           </div>
           <div :class="['fenLeiSouSuo', souSuoJiaoDian ? 'jiaoDian' : '']">
             <el-icon class="souSuoTuBiao"><Search /></el-icon>
@@ -79,14 +89,6 @@
             <button type="button" class="souSuoAnNiu" @click="chaXun">
               <el-icon><Search /></el-icon><span>搜一搜</span>
             </button>
-          </div>
-        </div>
-        <div class="fenLeiWangGe">
-          <div :class="['fenLeiKaPian', xuanZhongFenLei === null ? 'xuanZhong' : '']" @click="xuanFenLei(null)">
-            <el-icon class="fenLeiTuBiao"><Grid /></el-icon><span>全部</span>
-          </div>
-          <div v-for="f in fenLeiLieBiao" :key="f.id" :class="['fenLeiKaPian', xuanZhongFenLei === f.id ? 'xuanZhong' : '']" @click="xuanFenLei(f.id)">
-            <el-icon class="fenLeiTuBiao"><component :is="fenLeiTuBiao(f.mingCheng)" /></el-icon><span>{{ f.mingCheng }}</span>
           </div>
         </div>
       </section>
@@ -539,22 +541,67 @@ onMounted(() => {
 
 /* ===== 分类（含搜索） ===== */
 .fenLeiQu {
-  margin-top: 24px;
-  padding: 6px 22px 22px;
+  margin-top: 20px;
+  padding: 9px 16px;
   background: #fff;
   border: 1px solid var(--bianKuang);
-  border-radius: 22px;
+  border-radius: 16px;
   box-shadow: var(--banYing);
 }
-.fenLeiQu .kuaiBiaoTi { margin: 20px 0 0; }
+.fenLeiHang { display: flex; align-items: center; gap: 12px; }
+.fenLeiTou {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding-right: 12px;
+  border-right: 1px solid var(--bianKuang);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--wenZi);
+}
+.fenLeiTou .el-icon { font-size: 15px; color: var(--zhuSe); }
+.fenLeiLie {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.fenLeiLie::-webkit-scrollbar { display: none; }
+.fenLeiXiang {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--wenZiEr);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.fenLeiXiang .el-icon { font-size: 14px; opacity: .72; }
+.fenLeiXiang:hover { background: #f2f6ff; color: var(--zhuSe); }
+.fenLeiXiang.xuanZhong {
+  background: var(--zhuTiDu);
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 6px 14px rgba(47, 107, 255, .24);
+}
+.fenLeiXiang.xuanZhong .el-icon { opacity: 1; }
 .fenLeiSouSuo {
   display: flex;
   align-items: center;
   gap: 8px;
-  width: 400px;
+  width: 320px;
   max-width: 100%;
-  height: 50px;
-  padding: 0 6px 0 18px;
+  height: 42px;
+  padding: 0 5px 0 14px;
   border-radius: 999px;
   background: var(--beiJing);
   border: 1px solid transparent;
@@ -566,7 +613,7 @@ onMounted(() => {
   border-color: var(--zhuSe);
   box-shadow: 0 10px 26px rgba(47, 107, 255, .14);
 }
-.souSuoTuBiao { flex-shrink: 0; font-size: 17px; color: #9aa7bd; }
+.souSuoTuBiao { flex-shrink: 0; font-size: 15px; color: #9aa7bd; }
 .fenLeiSouSuo.jiaoDian .souSuoTuBiao { color: var(--zhuSe); }
 .souSuoShuRu {
   flex: 1;
@@ -575,7 +622,7 @@ onMounted(() => {
   border: none;
   outline: none;
   background: transparent;
-  font-size: 14.5px;
+  font-size: 13.5px;
   color: var(--wenZi);
 }
 .souSuoShuRu::placeholder { color: #9aa7bd; }
@@ -586,13 +633,13 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  height: 40px;
-  padding: 0 22px;
+  height: 32px;
+  padding: 0 16px;
   border: none;
   border-radius: 999px;
   background: var(--zhuTiDu);
   color: #fff;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(47, 107, 255, .28);
@@ -604,51 +651,7 @@ onMounted(() => {
   box-shadow: 0 12px 24px rgba(47, 107, 255, .34);
 }
 .souSuoAnNiu:active { transform: translateY(0); box-shadow: 0 6px 14px rgba(47, 107, 255, .24); }
-.fenLeiWangGe {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 14px;
-  margin-top: 20px;
-}
-.fenLeiKaPian {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  padding: 18px 10px;
-  background: var(--beiJing);
-  border-radius: 16px;
-  cursor: pointer;
-  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
-  border: 1px solid transparent;
-}
-.fenLeiKaPian:hover {
-  transform: translateY(-4px);
-  background: #fff;
-  border-color: #d7e2ff;
-  box-shadow: 0 12px 26px rgba(23, 43, 77, .10);
-}
-.fenLeiKaPian:hover .fenLeiTuBiao { transform: scale(1.08); }
-.fenLeiTuBiao {
-  font-size: 22px;
-  width: 46px;
-  height: 46px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background: #eef3ff;
-  color: var(--zhuSe);
-  transition: .2s;
-}
-.fenLeiKaPian span { font-size: 13.5px; color: var(--wenZi); }
-.fenLeiKaPian.xuanZhong {
-  background: var(--zhuTiDu);
-  border-color: transparent;
-  box-shadow: 0 12px 26px rgba(47, 107, 255, .28);
-}
-.fenLeiKaPian.xuanZhong span { color: #fff; font-weight: 600; }
-.fenLeiKaPian.xuanZhong .fenLeiTuBiao { background: rgba(255, 255, 255, .2); color: #fff; }
+
 
 /* ===== 商品 ===== */
 .shangPinTou { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
@@ -796,7 +799,9 @@ onMounted(() => {
   .yingXiongNei { padding: 44px 24px; }
   .shuJu { gap: 24px; }
   .shuJu b { font-size: 24px; }
-  .fenLeiQu { padding: 6px 16px 18px; border-radius: 18px; }
+  .fenLeiHang { flex-wrap: wrap; gap: 10px; }
+  .fenLeiTou { border-right: none; padding-right: 0; }
+  .fenLeiLie { flex-basis: 100%; }
   .fenLeiSouSuo { width: 100%; }
   .quTou { align-items: flex-start; }
 }
