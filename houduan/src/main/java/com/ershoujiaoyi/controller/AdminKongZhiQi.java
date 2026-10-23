@@ -3,10 +3,14 @@ package com.ershoujiaoyi.controller;
 
 import com.ershoujiaoyi.entity.DingDan;
 import com.ershoujiaoyi.entity.FenLei;
+import com.ershoujiaoyi.entity.GongGao;
+import com.ershoujiaoyi.entity.LunBoTu;
 import com.ershoujiaoyi.entity.ShangPin;
 import com.ershoujiaoyi.entity.YongHu;
 import com.ershoujiaoyi.repository.DingDanRepository;
 import com.ershoujiaoyi.repository.FenLeiRepository;
+import com.ershoujiaoyi.repository.GongGaoRepository;
+import com.ershoujiaoyi.repository.LunBoTuRepository;
 import com.ershoujiaoyi.repository.ShangPinRepository;
 import com.ershoujiaoyi.repository.YongHuRepository;
 import com.ershoujiaoyi.util.Md5;
@@ -16,6 +20,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +38,10 @@ public class AdminKongZhiQi {
     private DingDanRepository dingDanRepository;
     @Autowired
     private FenLeiRepository fenLeiRepository;
+    @Autowired
+    private LunBoTuRepository lunBoTuRepository;
+    @Autowired
+    private GongGaoRepository gongGaoRepository;
 
     @PostMapping("/denglu")
     public Map<String, Object> denglu(@RequestParam String yongHuMing, @RequestParam String miMa) {
@@ -53,16 +63,66 @@ public class AdminKongZhiQi {
         return jieGuo;
     }
 
+    /** 数据概览：总数 + 今日新增 + 分类分布 + 订单状态分布 + 成交额 */
     @GetMapping("/tongji")
     public Map<String, Object> tongji() {
         Map<String, Object> jieGuo = new HashMap<>();
+        List<YongHu> quanBuYongHu = yongHuRepository.findAll();
+        List<ShangPin> quanBuShangPin = shangPinRepository.findAll();
+        List<DingDan> quanBuDingDan = dingDanRepository.findAll();
+        List<FenLei> quanBuFenLei = fenLeiRepository.findAll();
+
         jieGuo.put("chengGong", true);
-        jieGuo.put("yongHuShu", yongHuRepository.count());
-        jieGuo.put("shangPinShu", shangPinRepository.count());
-        jieGuo.put("zaiShouShu", shangPinRepository.countByZhuangTai(0));
-        jieGuo.put("dingDanShu", dingDanRepository.count());
+        jieGuo.put("yongHuShu", quanBuYongHu.size());
+        jieGuo.put("shangPinShu", quanBuShangPin.size());
+        jieGuo.put("zaiShouShu", quanBuShangPin.stream()
+                .filter(s -> Integer.valueOf(0).equals(s.getZhuangTai())).count());
+        jieGuo.put("dingDanShu", quanBuDingDan.size());
+
+        // 分类商品分布
+        List<Map<String, Object>> fenLeiFenBu = new ArrayList<>();
+        for (FenLei f : quanBuFenLei) {
+            long shu = quanBuShangPin.stream()
+                    .filter(s -> f.getId() != null && f.getId().equals(s.getFenLeiId()))
+                    .count();
+            Map<String, Object> xiang = new HashMap<>();
+            xiang.put("mingCheng", f.getMingCheng());
+            xiang.put("shu", shu);
+            fenLeiFenBu.add(xiang);
+        }
+        jieGuo.put("fenLeiFenBu", fenLeiFenBu);
+
+        // 订单状态分布
+        Map<String, Object> dingDanFenBu = new HashMap<>();
+        dingDanFenBu.put("daiFaHuo", quanBuDingDan.stream().filter(d -> Integer.valueOf(0).equals(d.getZhuangTai())).count());
+        dingDanFenBu.put("daiShouHuo", quanBuDingDan.stream().filter(d -> Integer.valueOf(1).equals(d.getZhuangTai())).count());
+        dingDanFenBu.put("yiWanCheng", quanBuDingDan.stream().filter(d -> Integer.valueOf(2).equals(d.getZhuangTai())).count());
+        dingDanFenBu.put("yiQuXiao", quanBuDingDan.stream().filter(d -> Integer.valueOf(3).equals(d.getZhuangTai())).count());
+        jieGuo.put("dingDanFenBu", dingDanFenBu);
+
+        // 今日新增
+        Calendar lingDian = Calendar.getInstance();
+        lingDian.set(Calendar.HOUR_OF_DAY, 0);
+        lingDian.set(Calendar.MINUTE, 0);
+        lingDian.set(Calendar.SECOND, 0);
+        lingDian.set(Calendar.MILLISECOND, 0);
+        Date jinTian = lingDian.getTime();
+        jieGuo.put("jinRiYongHu", quanBuYongHu.stream()
+                .filter(y -> y.getZhuCeShiJian() != null && !y.getZhuCeShiJian().before(jinTian)).count());
+        jieGuo.put("jinRiShangPin", quanBuShangPin.stream()
+                .filter(s -> s.getFabuShiJian() != null && !s.getFabuShiJian().before(jinTian)).count());
+
+        // 已完成订单成交额
+        double chengJiaoE = quanBuDingDan.stream()
+                .filter(d -> Integer.valueOf(2).equals(d.getZhuangTai()))
+                .mapToDouble(d -> d.getJiaGe() == null ? 0D : d.getJiaGe())
+                .sum();
+        jieGuo.put("chengJiaoE", chengJiaoE);
+
         return jieGuo;
     }
+
+    // ==================== 用户管理 ====================
 
     @GetMapping("/yongHu")
     public Map<String, Object> yongHu(@RequestParam(defaultValue = "0") int yeMa,
@@ -94,10 +154,39 @@ public class AdminKongZhiQi {
     @PostMapping("/yongHu/shanchu")
     public Map<String, Object> shanChuYongHu(@RequestParam Long id) {
         Map<String, Object> jieGuo = new HashMap<>();
+        YongHu yh = yongHuRepository.findById(id).orElse(null);
+        if (yh != null && "admin".equals(yh.getYongHuMing())) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "内置管理员账号不可删除");
+            return jieGuo;
+        }
         yongHuRepository.deleteById(id);
         jieGuo.put("chengGong", true);
         return jieGuo;
     }
+
+    /** 设置 / 取消管理员 */
+    @PostMapping("/yongHu/guanliyuan")
+    public Map<String, Object> sheZhiGuanLiYuan(@RequestParam Long id, @RequestParam Boolean shi) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        YongHu yh = yongHuRepository.findById(id).orElse(null);
+        if (yh == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "用户不存在");
+            return jieGuo;
+        }
+        if ("admin".equals(yh.getYongHuMing()) && Boolean.FALSE.equals(shi)) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "内置管理员账号不可降级");
+            return jieGuo;
+        }
+        yh.setGuanLiYuan(shi);
+        yongHuRepository.save(yh);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    // ==================== 商品管理 ====================
 
     @GetMapping("/shangPin")
     public Map<String, Object> shangPin(@RequestParam(defaultValue = "0") int yeMa,
@@ -130,6 +219,7 @@ public class AdminKongZhiQi {
         return jieGuo;
     }
 
+    /** 下架商品 */
     @PostMapping("/shangPin/xiajia")
     public Map<String, Object> xiaJiaShangPin(@RequestParam Long id) {
         Map<String, Object> jieGuo = new HashMap<>();
@@ -144,6 +234,24 @@ public class AdminKongZhiQi {
         jieGuo.put("chengGong", true);
         return jieGuo;
     }
+
+    /** 恢复上架（已下架 -> 在售） */
+    @PostMapping("/shangPin/shangjia")
+    public Map<String, Object> shangJiaShangPin(@RequestParam Long id) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        ShangPin sp = shangPinRepository.findById(id).orElse(null);
+        if (sp == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "商品不存在");
+            return jieGuo;
+        }
+        sp.setZhuangTai(0);
+        shangPinRepository.save(sp);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    // ==================== 订单管理 ====================
 
     @GetMapping("/dingDan")
     public Map<String, Object> dingDan(@RequestParam(defaultValue = "0") int yeMa,
@@ -189,6 +297,16 @@ public class AdminKongZhiQi {
         return jieGuo;
     }
 
+    @PostMapping("/dingDan/shanchu")
+    public Map<String, Object> shanChuDingDan(@RequestParam Long id) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        dingDanRepository.deleteById(id);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    // ==================== 分类管理 ====================
+
     @GetMapping("/fenlei")
     public Map<String, Object> fenlei() {
         Map<String, Object> jieGuo = new HashMap<>();
@@ -214,6 +332,123 @@ public class AdminKongZhiQi {
     public Map<String, Object> shanChuFenLei(@RequestParam Long id) {
         Map<String, Object> jieGuo = new HashMap<>();
         fenLeiRepository.deleteById(id);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    // ==================== 轮播图管理 ====================
+
+    @GetMapping("/lunbo")
+    public Map<String, Object> lunbo() {
+        Map<String, Object> jieGuo = new HashMap<>();
+        jieGuo.put("chengGong", true);
+        jieGuo.put("lieBiao", lunBoTuRepository.findAllByOrderByPaiXuAscIdAsc());
+        return jieGuo;
+    }
+
+    @PostMapping("/lunbo/baocun")
+    public Map<String, Object> baoCunLunBo(@RequestBody LunBoTu lunBoTu) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        if (lunBoTu.getTuPian() == null || lunBoTu.getTuPian().trim().isEmpty()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "请填写轮播图片地址");
+            return jieGuo;
+        }
+        if (lunBoTu.getPaiXu() == null) {
+            lunBoTu.setPaiXu(0);
+        }
+        if (lunBoTu.getZhuangTai() == null) {
+            lunBoTu.setZhuangTai(0);
+        }
+        Date chuangJian = null;
+        if (lunBoTu.getId() != null) {
+            LunBoTu jiu = lunBoTuRepository.findById(lunBoTu.getId()).orElse(null);
+            if (jiu != null) {
+                chuangJian = jiu.getChuangJianShiJian();
+            }
+        }
+        lunBoTu.setChuangJianShiJian(chuangJian == null ? new Date() : chuangJian);
+        jieGuo.put("chengGong", true);
+        jieGuo.put("lunBoTu", lunBoTuRepository.save(lunBoTu));
+        return jieGuo;
+    }
+
+    @PostMapping("/lunbo/shanchu")
+    public Map<String, Object> shanChuLunBo(@RequestParam Long id) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        lunBoTuRepository.deleteById(id);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    @PostMapping("/lunbo/zhuangtai")
+    public Map<String, Object> lunBoZhuangTai(@RequestParam Long id, @RequestParam Integer zhuangTai) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        LunBoTu lb = lunBoTuRepository.findById(id).orElse(null);
+        if (lb == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "轮播图不存在");
+            return jieGuo;
+        }
+        lb.setZhuangTai(zhuangTai);
+        lunBoTuRepository.save(lb);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    // ==================== 公告管理 ====================
+
+    @GetMapping("/gonggao")
+    public Map<String, Object> gonggao() {
+        Map<String, Object> jieGuo = new HashMap<>();
+        jieGuo.put("chengGong", true);
+        jieGuo.put("lieBiao", gongGaoRepository.findAllByOrderByChuangJianShiJianDescIdDesc());
+        return jieGuo;
+    }
+
+    @PostMapping("/gonggao/baocun")
+    public Map<String, Object> baoCunGongGao(@RequestBody GongGao gongGao) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        if (gongGao.getBiaoTi() == null || gongGao.getBiaoTi().trim().isEmpty()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "请填写公告标题");
+            return jieGuo;
+        }
+        if (gongGao.getZhuangTai() == null) {
+            gongGao.setZhuangTai(0);
+        }
+        Date chuangJian = null;
+        if (gongGao.getId() != null) {
+            GongGao jiu = gongGaoRepository.findById(gongGao.getId()).orElse(null);
+            if (jiu != null) {
+                chuangJian = jiu.getChuangJianShiJian();
+            }
+        }
+        gongGao.setChuangJianShiJian(chuangJian == null ? new Date() : chuangJian);
+        jieGuo.put("chengGong", true);
+        jieGuo.put("gongGao", gongGaoRepository.save(gongGao));
+        return jieGuo;
+    }
+
+    @PostMapping("/gonggao/shanchu")
+    public Map<String, Object> shanChuGongGao(@RequestParam Long id) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        gongGaoRepository.deleteById(id);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    @PostMapping("/gonggao/zhuangtai")
+    public Map<String, Object> gongGaoZhuangTai(@RequestParam Long id, @RequestParam Integer zhuangTai) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        GongGao gg = gongGaoRepository.findById(id).orElse(null);
+        if (gg == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "公告不存在");
+            return jieGuo;
+        }
+        gg.setZhuangTai(zhuangTai);
+        gongGaoRepository.save(gg);
         jieGuo.put("chengGong", true);
         return jieGuo;
     }

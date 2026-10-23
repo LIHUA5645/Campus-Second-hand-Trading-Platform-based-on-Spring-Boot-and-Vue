@@ -49,5 +49,26 @@ export default {
   adminDingDanZhuangTai: (id, zhuangTai) => http.put('/admin/dingDan/zhuangtai?id=' + id + '&zhuangTai=' + zhuangTai),
   adminFenLei: () => http.get('/admin/fenlei'),
   adminTianJiaFenLei: (mingCheng) => http.post('/admin/fenlei/tianjia', { mingCheng }),
-  adminShanChuFenLei: (id) => http.post('/admin/fenlei/shanchu?id=' + id)
+  adminShanChuFenLei: (id) => http.post('/admin/fenlei/shanchu?id=' + id),
+
+  // 站点公开：轮播图 / 公告
+  zhanDianLunBo: () => http.get('/zhandian/lunbo'),
+  zhanDianGongGao: () => http.get('/zhandian/gonggao'),
+
+  // 管理员：轮播图
+  adminLunBo: () => http.get('/admin/lunbo'),
+  adminBaoCunLunBo: (data) => http.post('/admin/lunbo/baocun', data),
+  adminShanChuLunBo: (id) => http.post('/admin/lunbo/shanchu?id=' + id),
+  adminLunBoZhuangTai: (id, zhuangTai) => http.post('/admin/lunbo/zhuangtai?id=' + id + '&zhuangTai=' + zhuangTai),
+
+  // 管理员：公告
+  adminGongGao: () => http.get('/admin/gonggao'),
+  adminBaoCunGongGao: (data) => http.post('/admin/gonggao/baocun', data),
+  adminShanChuGongGao: (id) => http.post('/admin/gonggao/shanchu?id=' + id),
+  adminGongGaoZhuangTai: (id, zhuangTai) => http.post('/admin/gonggao/zhuangtai?id=' + id + '&zhuangTai=' + zhuangTai),
+
+  // 管理员：权限 / 商品 / 订单
+  adminSheZhiGuanLiYuan: (id, shi) => http.post('/admin/yongHu/guanliyuan?id=' + id + '&shi=' + shi),
+  adminShangJiaShangPin: (id) => http.post('/admin/shangPin/shangjia?id=' + id),
+  adminShanChuDingDan: (id) => http.post('/admin/dingDan/shanchu?id=' + id)
 }
