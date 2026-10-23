@@ -31,6 +31,14 @@ export default {
   xiajia: (id) => http.post('/shangpin/xiajia?id=' + id),
   woDeShangPin: (yongHuId) => http.get('/shangpin/wode?yongHuId=' + yongHuId),
 
+  // 个性化推荐（基于物品的协同过滤）
+  tuiJianLieBiao: (yongHuId, shu = 8) => http.get('/shangpin/tuijian', {
+    params: { yongHuId: yongHuId || undefined, shu }
+  }),
+  xiangGuanShangPin: (id, shu = 4) => http.get('/shangpin/xiangguan', {
+    params: { shangPinId: id, shu }
+  }),
+
   fenLeiLieBiao: () => http.get('/fenlei/liebiao'),
 
   xiadan: (data) => http.post('/dingdan/xiadan', data),
@@ -72,8 +80,24 @@ export default {
   adminShangJiaShangPin: (id) => http.post('/admin/shangPin/shangjia?id=' + id),
   adminShanChuDingDan: (id) => http.post('/admin/dingDan/shanchu?id=' + id),
 
+  // 管理员：发布商品（可代指定用户上架）
+  adminFaBuShangPin: (data) => http.post('/admin/shangPin/fabu', data, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  // 管理员：编辑商品（标题/描述/价格/图片/分类）
+  adminBianJiShangPin: (data) => http.post('/admin/shangPin/xiugai', data, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+
   // 图片上传（后台选图）
   shangChuanTuPian: (biaoDan) => http.post('/upload/tuxiang', biaoDan, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id
+    },
+    timeout: 30000
+  }),
+  shangChuanShangPinTu: (biaoDan) => http.post('/upload/tuxiang?leiBie=shangpin', biaoDan, {
     headers: {
       'Content-Type': 'multipart/form-data',
       'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id

@@ -96,6 +96,7 @@
         <!-- 商品管理 -->
         <div v-else-if="active === 'shangpin'">
           <div class="gongJu">
+            <el-button type="primary" plain @click="daKaiShangPin()"><el-icon><Plus /></el-icon> 发布商品</el-button>
             <el-input v-model="keyword" placeholder="搜索商品标题" clearable style="width: 240px" @keyup.enter="chaZhao" @clear="chaZhao">
               <template #prefix><el-icon><Search /></el-icon></template>
             </el-input>
@@ -103,6 +104,19 @@
           </div>
           <el-table :data="lieBiao" border stripe>
             <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column label="图片" width="86">
+              <template #default="{ row }">
+                <el-image
+                  v-if="row.tuPian"
+                  :src="row.tuPian"
+                  :preview-src-list="[row.tuPian]"
+                  preview-teleported
+                  fit="cover"
+                  class="lieTuPian"
+                />
+                <div v-else class="lieTuPian lieTuPianKong"><el-icon><Picture /></el-icon></div>
+              </template>
+            </el-table-column>
             <el-table-column prop="biaoTi" label="标题" show-overflow-tooltip />
             <el-table-column label="价格" width="100">
               <template #default="{ row }">￥{{ row.jiaGe }}</template>
@@ -119,8 +133,9 @@
             <el-table-column label="发布时间">
               <template #default="{ row }">{{ shiJian(row.fabuShiJian) }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="190" fixed="right">
+            <el-table-column label="操作" width="230" fixed="right">
               <template #default="{ row }">
+                <el-button type="primary" link size="small" @click="daKaiShangPin(row)">编辑</el-button>
                 <el-button v-if="row.zhuangTai === 0" type="warning" link size="small" @click="xiaJia(row.id)">下架</el-button>
                 <el-button v-if="row.zhuangTai === 2" type="success" link size="small" @click="shangJia(row.id)">恢复上架</el-button>
                 <el-button type="danger" link size="small" @click="shanChuShangPin(row.id)">删除</el-button>
@@ -305,6 +320,59 @@
       <template #footer>
         <el-button @click="caiJianDuiHua = false">取消</el-button>
         <el-button class="shangChuanAnNiu" :loading="shangChuanZhong" @click="queRenCaiJian">确定并上传</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 发布 / 编辑商品弹窗 -->
+    <el-dialog v-model="shangPinDuiHua" :title="shangPinBiaoDan.id ? '编辑商品（ID ' + shangPinBiaoDan.id + '）' : '发布商品'" width="640px">
+      <el-form :model="shangPinBiaoDan" label-width="90px">
+        <el-form-item label="商品标题">
+          <el-input v-model="shangPinBiaoDan.biaoTi" placeholder="如：九成新 曲面屏手机 8+128G" />
+        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="商品分类">
+              <el-select v-model="shangPinBiaoDan.fenLeiId" placeholder="请选择分类" style="width: 100%">
+                <el-option v-for="f in fenLeiLie" :key="f.id" :label="f.mingCheng" :value="f.id" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="出售价格">
+              <el-input-number v-model="shangPinBiaoDan.jiaGe" :min="0" :precision="2" :step="10" controls-position="right" style="width: 100%" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="发布者" v-if="!shangPinBiaoDan.id">
+          <el-select v-model="shangPinBiaoDan.yongHuId" filterable clearable placeholder="不选则记在当前管理员名下" style="width: 100%">
+            <el-option v-for="y in yongHuLie" :key="y.id" :label="(y.xingMing || y.yongHuMing) + '（' + y.yongHuMing + '）'" :value="y.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="发布者" v-else>
+          <span class="chunWenZi">{{ shangPinBiaoDan.yongHuMing || '—' }}（编辑时不可更改发布者）</span>
+        </el-form-item>
+        <el-form-item label="商品描述">
+          <el-input v-model="shangPinBiaoDan.miaoShu" type="textarea" :rows="3" placeholder="成色、入手渠道、转手原因等" />
+        </el-form-item>
+        <el-form-item label="商品图片">
+          <div class="shangPinTu">
+            <div class="yuLanKuang shangPinYuLan" @click="xuanShangPinTu">
+              <img v-if="shangPinBiaoDan.tuPian" :src="shangPinBiaoDan.tuPian" alt="预览" />
+              <div v-else class="kongTu"><span class="jiaHao">+</span><span>点击选择本地图片</span></div>
+            </div>
+            <el-input v-model="shangPinBiaoDan.tuPian" size="small" placeholder="图片地址，也可直接粘贴外链">
+              <template #append>
+                <el-button v-if="shangPinBiaoDan.tuPian" @click="shangPinBiaoDan.tuPian = ''">清空</el-button>
+              </template>
+            </el-input>
+            <input ref="shangPinWenJian" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="yinCangWenJian" @change="shangPinXuanWenJian" />
+            <div class="biaoDanTiShi">上传后会自动填入图片地址；清空后前台显示渐变占位图。</div>
+          </div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="shangPinDuiHua = false">取消</el-button>
+        <el-button type="primary" :loading="shangPinTiJiaoZhong" @click="baoCunShangPin">{{ shangPinBiaoDan.id ? '保存修改' : '发布' }}</el-button>
       </template>
     </el-dialog>
 
@@ -671,6 +739,84 @@ const shanChuLunBo = async (id) => {
   } catch (e) { /* 取消 */ }
 }
 
+// ===== 发布商品 =====
+const shangPinDuiHua = ref(false)
+const shangPinTiJiaoZhong = ref(false)
+const shangPinWenJian = ref(null)
+const shangPinBiaoDan = ref({})
+const yongHuLie = ref([])
+
+const daKaiShangPin = (row) => {
+  shangPinBiaoDan.value = row
+    ? {
+        id: row.id, biaoTi: row.biaoTi, miaoShu: row.miaoShu, jiaGe: row.jiaGe,
+        tuPian: row.tuPian || '', fenLeiId: row.fenLeiId, yongHuMing: row.yongHuMing
+      }
+    : {
+        biaoTi: '', miaoShu: '', jiaGe: 0, tuPian: '', fenLeiId: null,
+        yongHuId: guanLiYuan.value.id || null
+      }
+  shangPinDuiHua.value = true
+  if (!fenLeiLie.value.length) {
+    jieKou.adminFenLei().then(res => { if (res.data.chengGong) fenLeiLie.value = res.data.lieBiao })
+  }
+  if (!yongHuLie.value.length) {
+    jieKou.adminYongHu({ yeMa: 0, meiYe: 500 }).then(res => {
+      if (res.data.chengGong) yongHuLie.value = res.data.lieBiao || []
+    })
+  }
+}
+const xuanShangPinTu = () => {
+  if (shangPinWenJian.value) {
+    shangPinWenJian.value.value = ''
+    shangPinWenJian.value.click()
+  }
+}
+const shangPinXuanWenJian = async (e) => {
+  const wenJian = e.target.files && e.target.files[0]
+  if (!wenJian) return
+  if (wenJian.size > 8 * 1024 * 1024) { ElMessage.warning('图片不能超过 8MB'); return }
+  const shuJu = new FormData()
+  shuJu.append('file', wenJian, wenJian.name)
+  shangPinTiJiaoZhong.value = true
+  try {
+    const res = await jieKou.shangChuanShangPinTu(shuJu)
+    if (res.data.chengGong) {
+      shangPinBiaoDan.value.tuPian = res.data.url
+      ElMessage.success('图片已上传')
+    } else {
+      ElMessage.error(res.data.xinXi || '上传失败')
+    }
+  } catch (err) {
+    ElMessage.error('上传失败，请确认后端已启动且已登录管理员')
+  } finally {
+    shangPinTiJiaoZhong.value = false
+  }
+}
+const baoCunShangPin = async () => {
+  const bd = shangPinBiaoDan.value
+  if (!bd.biaoTi || !bd.biaoTi.trim()) { ElMessage.warning('请填写商品标题'); return }
+  if (bd.jiaGe === null || bd.jiaGe === undefined || bd.jiaGe < 0) { ElMessage.warning('请填写正确的价格'); return }
+  if (!bd.fenLeiId) { ElMessage.warning('请选择商品分类'); return }
+  shangPinTiJiaoZhong.value = true
+  try {
+    const res = bd.id
+      ? await jieKou.adminBianJiShangPin(bd)
+      : await jieKou.adminFaBuShangPin(bd)
+    if (res.data.chengGong) {
+      ElMessage.success(bd.id ? '已保存修改' : '发布成功')
+      shangPinDuiHua.value = false
+      if (!bd.id) page.value = 0
+      loadLieBiao()
+      loadTongJi()
+    } else {
+      ElMessage.error(res.data.xinXi || (bd.id ? '保存失败' : '发布失败'))
+    }
+  } finally {
+    shangPinTiJiaoZhong.value = false
+  }
+}
+
 // ===== 公告 =====
 const gongGaoDuiHua = ref(false)
 const gongGaoBiaoDan = ref({})
@@ -797,6 +943,32 @@ onMounted(() => {
 
 /* ===== 轮播图片上传区 ===== */
 .tuPianShangChuan { width: 100%; max-width: 400px; }
+
+/* ===== 商品列表缩略图 ===== */
+.lieTuPian {
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  overflow: hidden;
+  display: block;
+  cursor: zoom-in;
+}
+.lieTuPianKong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--beiJing);
+  color: #b9c4d6;
+  font-size: 20px;
+  cursor: default;
+}
+.chunWenZi { font-size: 13px; color: var(--wenZiSan); }
+
+/* ===== 商品图片上传区 ===== */
+.shangPinTu { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 8px; }
+.shangPinTu .shangPinYuLan { aspect-ratio: 1 / 1; max-width: 170px; }
+.shangPinTu .shangPinYuLan .kongTu { font-size: 12px; }
+
 .yuLanKuang {
   position: relative;
   width: 100%;

@@ -188,6 +188,42 @@ public class AdminKongZhiQi {
 
     // ==================== 商品管理 ====================
 
+    /**
+     * 管理员发布商品：可代任意用户上架，未指定发布者时记在当前管理员名下。
+     */
+    @PostMapping("/shangPin/fabu")
+    public Map<String, Object> faBuShangPin(@RequestBody ShangPin shangPin,
+                                            @RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        YongHu guanLiYuan = guanLiYuanId == null ? null : yongHuRepository.findById(guanLiYuanId).orElse(null);
+        if (guanLiYuan == null || guanLiYuan.getGuanLiYuan() == null || !guanLiYuan.getGuanLiYuan()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "只有管理员可以发布商品，请重新登录后台");
+            return jieGuo;
+        }
+        if (shangPin.getBiaoTi() == null || shangPin.getBiaoTi().trim().isEmpty()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "商品标题不能为空");
+            return jieGuo;
+        }
+        if (shangPin.getJiaGe() == null || shangPin.getJiaGe() < 0) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "请填写正确的商品价格");
+            return jieGuo;
+        }
+        Long faBuRenId = shangPin.getYongHuId() == null ? guanLiYuan.getId() : shangPin.getYongHuId();
+        YongHu faBuRen = yongHuRepository.findById(faBuRenId).orElse(guanLiYuan);
+        shangPin.setId(null);
+        shangPin.setYongHuId(faBuRen.getId());
+        shangPin.setYongHuMing(faBuRen.getXingMing() != null && !faBuRen.getXingMing().isEmpty()
+                ? faBuRen.getXingMing() : faBuRen.getYongHuMing());
+        shangPin.setZhuangTai(0);
+        shangPin.setFabuShiJian(new Date());
+        jieGuo.put("chengGong", true);
+        jieGuo.put("shangPin", shangPinRepository.save(shangPin));
+        return jieGuo;
+    }
+
     @GetMapping("/shangPin")
     public Map<String, Object> shangPin(@RequestParam(defaultValue = "0") int yeMa,
                                        @RequestParam(defaultValue = "10") int meiYe,
@@ -208,6 +244,55 @@ public class AdminKongZhiQi {
         jieGuo.put("chengGong", true);
         jieGuo.put("lieBiao", dangYe);
         jieGuo.put("zongShu", zongShu);
+        return jieGuo;
+    }
+
+    /**
+     * 管理员编辑商品：标题 / 描述 / 价格 / 图片 / 分类，发布者与发布时间保持不变。
+     * tuPian 传空字符串表示清空图片，字段不传则保持原值。
+     */
+    @PostMapping("/shangPin/xiugai")
+    public Map<String, Object> bianJiShangPin(@RequestBody ShangPin shangPin,
+                                              @RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        YongHu guanLiYuan = guanLiYuanId == null ? null : yongHuRepository.findById(guanLiYuanId).orElse(null);
+        if (guanLiYuan == null || guanLiYuan.getGuanLiYuan() == null || !guanLiYuan.getGuanLiYuan()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "只有管理员可以编辑商品，请重新登录后台");
+            return jieGuo;
+        }
+        if (shangPin.getId() == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "缺少商品编号");
+            return jieGuo;
+        }
+        ShangPin yuan = shangPinRepository.findById(shangPin.getId()).orElse(null);
+        if (yuan == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "商品不存在");
+            return jieGuo;
+        }
+        if (shangPin.getBiaoTi() != null) {
+            if (shangPin.getBiaoTi().trim().isEmpty()) {
+                jieGuo.put("chengGong", false);
+                jieGuo.put("xinXi", "商品标题不能为空");
+                return jieGuo;
+            }
+            yuan.setBiaoTi(shangPin.getBiaoTi().trim());
+        }
+        if (shangPin.getJiaGe() != null) {
+            if (shangPin.getJiaGe() < 0) {
+                jieGuo.put("chengGong", false);
+                jieGuo.put("xinXi", "请填写正确的商品价格");
+                return jieGuo;
+            }
+            yuan.setJiaGe(shangPin.getJiaGe());
+        }
+        if (shangPin.getMiaoShu() != null) yuan.setMiaoShu(shangPin.getMiaoShu());
+        if (shangPin.getTuPian() != null) yuan.setTuPian(shangPin.getTuPian().trim());
+        if (shangPin.getFenLeiId() != null) yuan.setFenLeiId(shangPin.getFenLeiId());
+        jieGuo.put("chengGong", true);
+        jieGuo.put("shangPin", shangPinRepository.save(yuan));
         return jieGuo;
     }
 

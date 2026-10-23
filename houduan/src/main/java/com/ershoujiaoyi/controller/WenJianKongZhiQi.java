@@ -18,7 +18,8 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * 后台图片上传：从本地选择图片 → 存到 upload/lunbo → 返回 /uploads/lunbo/xxx 地址。
+ * 后台图片上传：从本地选择图片 → 存到 upload/{类别} → 返回 /uploads/{类别}/xxx 地址。
+ * 类别：lunbo（轮播图，默认）、shangpin（商品图）。
  */
 @RestController
 @RequestMapping("/upload")
@@ -31,10 +32,12 @@ public class WenJianKongZhiQi {
     private String shangChuanMuLu;
 
     private static final List<String> YUN_XU = Arrays.asList("jpg", "jpeg", "png", "webp", "gif", "bmp");
+    private static final List<String> YUN_XU_LEI_BIE = Arrays.asList("lunbo", "shangpin");
     private static final long ZUI_DA = 8L * 1024 * 1024;
 
     @PostMapping("/tuxiang")
     public Map<String, Object> shangChuanTuXiang(@RequestParam("file") MultipartFile wenJian,
+                                                 @RequestParam(value = "leiBie", required = false) String leiBie,
                                                  @RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId) {
         Map<String, Object> jieGuo = new HashMap<>();
         YongHu guanLiYuan = guanLiYuanId == null ? null : yongHuRepository.findById(guanLiYuanId).orElse(null);
@@ -61,7 +64,8 @@ public class WenJianKongZhiQi {
             jieGuo.put("xinXi", "仅支持 jpg / png / webp / gif 图片");
             return jieGuo;
         }
-        File muLu = new File(shangChuanMuLu, "lunbo");
+        String ziMuLu = (leiBie == null || !YUN_XU_LEI_BIE.contains(leiBie)) ? "lunbo" : leiBie;
+        File muLu = new File(shangChuanMuLu, ziMuLu);
         if (!muLu.exists() && !muLu.mkdirs()) {
             jieGuo.put("chengGong", false);
             jieGuo.put("xinXi", "创建上传目录失败：" + muLu.getAbsolutePath());
@@ -77,7 +81,7 @@ public class WenJianKongZhiQi {
             return jieGuo;
         }
         jieGuo.put("chengGong", true);
-        jieGuo.put("url", "/uploads/lunbo/" + xinMing);
+        jieGuo.put("url", "/uploads/" + ziMuLu + "/" + xinMing);
         return jieGuo;
     }
 }

@@ -4,6 +4,7 @@ package com.ershoujiaoyi.controller;
 import com.ershoujiaoyi.entity.ShangPin;
 import com.ershoujiaoyi.repository.ShangPinRepository;
 import com.ershoujiaoyi.repository.YongHuRepository;
+import com.ershoujiaoyi.service.TuiJianFuWu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,8 @@ public class ShangPinKongZhiQi {
     private ShangPinRepository shangPinRepository;
     @Autowired
     private YongHuRepository yongHuRepository;
+    @Autowired
+    private TuiJianFuWu tuiJianFuWu;
 
     @PostMapping("/fabu")
     public Map<String, Object> fabu(@RequestBody ShangPin shangPin) {
@@ -124,6 +127,29 @@ public class ShangPinKongZhiQi {
         Map<String, Object> jieGuo = new HashMap<>();
         jieGuo.put("chengGong", true);
         jieGuo.put("lieBiao", shangPinRepository.findByYongHuId(yongHuId));
+        return jieGuo;
+    }
+
+    /** 猜你喜欢：基于物品的协同过滤（无行为时按热度 + 最新兜底） */
+    @GetMapping("/tuijian")
+    public Map<String, Object> tuijian(@RequestParam(required = false) Long yongHuId,
+                                       @RequestParam(defaultValue = "8") int shu) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        List<ShangPin> tuiJian = tuiJianFuWu.tuiJian(yongHuId, shu);
+        jieGuo.put("chengGong", true);
+        jieGuo.put("lieBiao", tuiJian);
+        jieGuo.put("suanFa", "基于物品的协同过滤");
+        return jieGuo;
+    }
+
+    /** 看了又看：与当前商品最相似的好物 */
+    @GetMapping("/xiangguan")
+    public Map<String, Object> xiangguan(@RequestParam Long shangPinId,
+                                         @RequestParam(defaultValue = "4") int shu) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        jieGuo.put("chengGong", true);
+        jieGuo.put("lieBiao", tuiJianFuWu.xiangGuan(shangPinId, shu));
+        jieGuo.put("suanFa", "基于物品的协同过滤");
         return jieGuo;
     }
 }
