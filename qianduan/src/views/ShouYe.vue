@@ -16,25 +16,49 @@
           </div>
           <div class="shuJu">
             <div><b>{{ zongShu || '—' }}</b><span>在售好物</span></div>
-            <div><b>7</b><span>商品分类</span></div>
+            <div><b>{{ fenLeiLieBiao.length || '—' }}</b><span>商品分类</span></div>
             <div><b>24h</b><span>极速交易</span></div>
           </div>
         </div>
         <div class="yingXiongYou">
-          <div class="huan1"></div>
-          <div class="huan2"></div>
-          <div class="huan3"></div>
-          <div class="heroCard">
-            <el-icon class="yingXiongTuBiao"><ShoppingBag /></el-icon>
-          </div>
-          <span class="fuBiao fuBiao1">教材 9 成新</span>
-          <span class="fuBiao fuBiao2">数码好价</span>
-          <span class="fuBiao fuBiao3">宿舍好物</span>
+          <el-carousel v-if="lunBoLie.length" height="300px" :interval="4200" arrow="hover" class="lunBo">
+            <el-carousel-item v-for="lb in lunBoLie" :key="lb.id">
+              <div class="lunBoXiang" @click="tiaoZhuan(lb.lianJie)">
+                <img :src="lb.tuPian" :alt="lb.biaoTi || '轮播图'" />
+                <div class="lunBoZheZhao"></div>
+                <div class="lunBoWenZi" v-if="lb.biaoTi || lb.fuBiaoTi">
+                  <strong v-if="lb.biaoTi">{{ lb.biaoTi }}</strong>
+                  <span v-if="lb.fuBiaoTi">{{ lb.fuBiaoTi }}</span>
+                </div>
+              </div>
+            </el-carousel-item>
+          </el-carousel>
+          <template v-else>
+            <div class="huan1"></div>
+            <div class="huan2"></div>
+            <div class="huan3"></div>
+            <div class="heroCard">
+              <el-icon class="yingXiongTuBiao"><ShoppingBag /></el-icon>
+            </div>
+            <span class="fuBiao fuBiao1">教材 9 成新</span>
+            <span class="fuBiao fuBiao2">数码好价</span>
+            <span class="fuBiao fuBiao3">宿舍好物</span>
+          </template>
         </div>
       </div>
     </section>
 
     <div class="rongQi">
+      <div class="gongGaoTiao" v-if="gongGaoLie.length">
+        <el-icon class="gongGaoTuBiao"><Bell /></el-icon>
+        <span class="gongGaoBiaoQian">公告</span>
+        <el-carousel height="26px" direction="vertical" :interval="4500" indicator-position="none" class="gongGaoLunBo">
+          <el-carousel-item v-for="gg in gongGaoLie" :key="gg.id">
+            <span class="gongGaoWenZi"><b>{{ gg.biaoTi }}</b><em>{{ gg.neiRong }}</em></span>
+          </el-carousel-item>
+        </el-carousel>
+      </div>
+
       <section class="fenLeiQu">
         <div class="quTou">
           <h2 class="kuaiBiaoTi"><el-icon><Menu /></el-icon> 全部分类</h2>
@@ -95,6 +119,8 @@ import jieKou from '@/api/jieKou'
 const luYou = useRouter()
 const luYouXin = useRoute()
 const dangQianYongHu = ref(null)
+const lunBoLie = ref([])
+const gongGaoLie = ref([])
 const guanJianCi = ref('')
 const fenLeiLieBiao = ref([])
 const xuanZhongFenLei = ref(null)
@@ -111,6 +137,22 @@ const huoQuYongHu = () => {
 const jiaZaiFenLei = async () => {
   const res = await jieKou.fenLeiLieBiao()
   if (res.data.chengGong) fenLeiLieBiao.value = res.data.lieBiao
+}
+
+const jiaZaiZhanDian = async () => {
+  try {
+    const [lb, gg] = await Promise.all([jieKou.zhanDianLunBo(), jieKou.zhanDianGongGao()])
+    if (lb.data.chengGong) lunBoLie.value = lb.data.lieBiao || []
+    if (gg.data.chengGong) gongGaoLie.value = gg.data.lieBiao || []
+  } catch (e) {
+    // 首页装饰数据加载失败不影响主流程
+  }
+}
+
+const tiaoZhuan = (lianJie) => {
+  if (!lianJie) return
+  if (/^https?:/i.test(lianJie)) window.open(lianJie, '_blank')
+  else luYou.push(lianJie)
 }
 
 const jiaZaiShangPin = async () => {
@@ -135,6 +177,7 @@ watch(() => luYouXin.query.kw, (kw) => { guanJianCi.value = kw || ''; yeMa.value
 onMounted(() => {
   huoQuYongHu()
   jiaZaiFenLei()
+  jiaZaiZhanDian()
   guanJianCi.value = luYouXin.query.kw || ''
   jiaZaiShangPin()
 })
@@ -142,6 +185,47 @@ onMounted(() => {
 
 <style scoped>
 .shouYe { padding-bottom: 40px; }
+
+/* ===== 首页滚动公告 ===== */
+.gongGaoTiao {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 8px 18px;
+  background: #fff;
+  border: 1px solid var(--bianKuang);
+  border-radius: 999px;
+  box-shadow: var(--banYing);
+}
+.gongGaoTuBiao { color: var(--zhuSe); font-size: 16px; }
+.gongGaoBiaoQian {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--zhuSe);
+  padding-right: 10px;
+  border-right: 1px solid var(--bianKuang);
+}
+.gongGaoLunBo { flex: 1; height: 26px; }
+.gongGaoLunBo :deep(.el-carousel__container) { height: 26px; }
+.gongGaoWenZi {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  font-size: 13px;
+  color: var(--wenZiEr);
+  overflow: hidden;
+}
+.gongGaoWenZi b { flex-shrink: 0; color: var(--wenZi); }
+.gongGaoWenZi em {
+  font-style: normal;
+  color: var(--wenZiSan);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* ===== Hero ===== */
 .yingXiong {
@@ -215,16 +299,48 @@ onMounted(() => {
 .shuJu b { font-size: 28px; font-weight: 800; }
 .shuJu span { font-size: 13px; opacity: .85; margin-top: 3px; }
 
-/* Hero 右侧插画 */
+/* Hero 右侧插画 / 轮播图 */
 .yingXiongYou {
   position: relative;
-  width: 320px;
-  height: 280px;
+  width: 460px;
+  height: 300px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+.lunBo {
+  width: 100%;
+  height: 300px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 22px 46px rgba(0, 0, 0, .22);
+}
+.lunBo :deep(.el-carousel__container) { height: 300px; }
+.lunBo :deep(.el-carousel__arrow) { background: rgba(0, 0, 0, .32); }
+.lunBo :deep(.el-carousel__indicator button) { opacity: .55; }
+.lunBo :deep(.el-carousel__indicator.is-active button) { opacity: 1; width: 22px; border-radius: 999px; }
+.lunBoXiang { position: relative; width: 100%; height: 100%; cursor: pointer; }
+.lunBoXiang img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
+.lunBoXiang:hover img { transform: scale(1.04); }
+.lunBoZheZhao {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(12, 24, 48, 0) 36%, rgba(12, 24, 48, .72) 100%);
+}
+.lunBoWenZi {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #fff;
+}
+.lunBoWenZi strong { font-size: 17px; font-weight: 800; letter-spacing: .5px; text-shadow: 0 2px 10px rgba(0, 0, 0, .35); }
+.lunBoWenZi span { font-size: 12.5px; opacity: .9; }
+
 .huan1, .huan2, .huan3 { position: absolute; border-radius: 50%; }
 .huan1 { width: 270px; height: 270px; border: 1px dashed rgba(255, 255, 255, .35); }
 .huan2 { width: 205px; height: 205px; border: 1px solid rgba(255, 255, 255, .22); }
