@@ -307,7 +307,7 @@ onMounted(() => {
 .shuJu b { font-size: 28px; font-weight: 800; }
 .shuJu span { font-size: 13px; color: rgba(255, 255, 255, .62); margin-top: 3px; }
 
-/* Hero 右侧插画 / 轮播图 */
+/* Hero 右侧插画 / 轮播图（16:9，与素材原比例一致，不裁切） */
 .yingXiongYou {
   position: relative;
   width: 540px;
@@ -320,42 +320,47 @@ onMounted(() => {
 .lunBo {
   width: 100%;
   height: 304px;
-  border-radius: 22px;
+  border-radius: 20px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, .16);
   box-shadow: 0 30px 64px rgba(0, 0, 0, .55);
+  background: #fff;
 }
 .lunBo :deep(.el-carousel__container) { height: 304px; }
 .lunBo :deep(.el-carousel__arrow) {
   width: 36px;
   height: 36px;
-  background: rgba(10, 14, 20, .45);
+  background: rgba(10, 14, 20, .42);
   border-radius: 50%;
   backdrop-filter: blur(4px);
 }
-.lunBo :deep(.el-carousel__arrow:hover) { background: rgba(10, 14, 20, .72); }
+.lunBo :deep(.el-carousel__arrow:hover) { background: rgba(10, 14, 20, .70); }
 .lunBo :deep(.el-carousel__arrow) .el-icon { font-size: 16px; }
 
-.lunBoXiang { position: relative; width: 100%; height: 100%; cursor: pointer; overflow: hidden; }
-.lunBoXiang img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s ease; }
-.lunBoXiang:hover img { transform: scale(1.04); }
+.lunBoXiang { position: relative; width: 100%; height: 100%; cursor: pointer; overflow: hidden; background: #fff; }
+.lunBoXiang img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; transition: transform .6s ease; }
+.lunBoXiang:hover img { transform: scale(1.03); }
 
-/* 仅在顶部与底部轻压暗，保证图片主体完整可见 */
+/* 叠加层默认透明，鼠标悬停才出现，避免与图片自带文案打架 */
 .lunBoTian {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(0, 0, 0, .20) 0%, rgba(0, 0, 0, 0) 22%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, .18) 0%, rgba(0, 0, 0, 0) 18%);
+  opacity: 0;
+  transition: opacity .35s ease;
   pointer-events: none;
 }
 .lunBoZheZhao {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg,
-    rgba(0, 0, 0, 0) 62%,
-    rgba(0, 0, 0, .26) 84%,
-    rgba(0, 0, 0, .52) 100%);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 50%, rgba(0, 0, 0, .52) 100%);
+  opacity: 0;
+  transition: opacity .35s ease;
   pointer-events: none;
 }
+.lunBoXiang:hover .lunBoTian,
+.lunBoXiang:hover .lunBoZheZhao { opacity: 1; }
+
 .lunBoSu {
   position: absolute;
   top: 14px;
@@ -365,7 +370,7 @@ onMounted(() => {
   font-weight: 700;
   letter-spacing: .5px;
   color: #fff;
-  background: rgba(0, 0, 0, .28);
+  background: rgba(17, 24, 39, .42);
   padding: 4px 10px;
   border-radius: 999px;
   backdrop-filter: blur(6px);
@@ -376,7 +381,11 @@ onMounted(() => {
   right: 92px;
   bottom: 14px;
   z-index: 3;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .3s ease, transform .3s ease;
 }
+.lunBoXiang:hover .lunBoKaPian { opacity: 1; transform: translateY(0); }
 .lunBoKaPian strong {
   display: block;
   font-size: 18px;
@@ -405,14 +414,14 @@ onMounted(() => {
   width: 16px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, .60);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .35);
+  background: rgba(17, 24, 39, .26);
   cursor: pointer;
   transition: all .3s ease;
 }
+.lunBoZhiShiQi .tiao:hover { background: rgba(17, 24, 39, .45); }
 .lunBoZhiShiQi .tiao.xuan {
   width: 28px;
-  background: #fff;
+  background: #111827;
 }
 
 .huan1, .huan2, .huan3 { position: absolute; border-radius: 50%; }
