@@ -259,6 +259,7 @@
           <div class="yuLan" v-if="lunBoBiaoDan.tuPian">
             <img :src="lunBoBiaoDan.tuPian" alt="预览" />
           </div>
+          <div class="biaoDanTiShi">建议上传 <b>16:9</b> 横图（如 1920×1080、2048×1152），首页按 16:9 等比裁剪铺满；分辨率 ≥ 1280×720 更清晰，过大将被裁掉两侧。</div>
         </el-form-item>
         <el-form-item label="主标题"><el-input v-model="lunBoBiaoDan.biaoTi" placeholder="如：校园闲置 · 安心流转" /></el-form-item>
         <el-form-item label="副标题"><el-input v-model="lunBoBiaoDan.fuBiaoTi" placeholder="如：教材 / 数码 / 好物，低价淘" /></el-form-item>
@@ -597,4 +598,6 @@ onMounted(() => {
 .yuLan img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; border: 1px solid var(--bianKuang); }
 
 .fenYe { display: flex; justify-content: center; margin-top: 20px; }
+
+.biaoDanTiShi { font-size: 12px; color: #909399; line-height: 1.5; margin-top: 6px; }
 </style>
