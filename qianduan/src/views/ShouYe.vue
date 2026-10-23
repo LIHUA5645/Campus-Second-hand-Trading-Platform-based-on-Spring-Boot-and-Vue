@@ -21,18 +21,24 @@
           </div>
         </div>
         <div class="yingXiongYou">
-          <el-carousel v-if="lunBoLie.length" height="300px" :interval="4200" arrow="hover" class="lunBo">
-            <el-carousel-item v-for="lb in lunBoLie" :key="lb.id">
+          <el-carousel ref="lunBoRef" v-if="lunBoLie.length" height="344px" :interval="4200" indicator-position="none" arrow="hover" class="lunBo" @change="(i) => dangQianLunBo = i">
+            <el-carousel-item v-for="(lb, idx) in lunBoLie" :key="lb.id">
               <div class="lunBoXiang" @click="tiaoZhuan(lb.lianJie)">
                 <img :src="lb.tuPian" :alt="lb.biaoTi || '轮播图'" />
+                <div class="lunBoTian"></div>
                 <div class="lunBoZheZhao"></div>
-                <div class="lunBoWenZi" v-if="lb.biaoTi || lb.fuBiaoTi">
+                <span class="lunBoSu">{{ String(idx + 1).padStart(2, '0') }} / {{ String(lunBoLie.length).padStart(2, '0') }}</span>
+                <div class="lunBoKaPian" v-if="lb.biaoTi || lb.fuBiaoTi">
+                  <span class="lunBoMei">校园好物推荐</span>
                   <strong v-if="lb.biaoTi">{{ lb.biaoTi }}</strong>
-                  <span v-if="lb.fuBiaoTi">{{ lb.fuBiaoTi }}</span>
+                  <span v-if="lb.fuBiaoTi" class="lunBoFu">{{ lb.fuBiaoTi }}</span>
                 </div>
               </div>
             </el-carousel-item>
           </el-carousel>
+          <div v-if="lunBoLie.length" class="lunBoZhiShiQi">
+            <span v-for="(lb, i) in lunBoLie" :key="lb.id" :class="['tiao', dangQianLunBo === i ? 'xuan' : '']" @click="tiaoLunBo(i)"></span>
+          </div>
           <template v-else>
             <div class="huan1"></div>
             <div class="huan2"></div>
@@ -121,6 +127,9 @@ const luYouXin = useRoute()
 const dangQianYongHu = ref(null)
 const lunBoLie = ref([])
 const gongGaoLie = ref([])
+const lunBoRef = ref(null)
+const dangQianLunBo = ref(0)
+const tiaoLunBo = (i) => { if (lunBoRef.value) lunBoRef.value.setActiveItem(i) }
 const guanJianCi = ref('')
 const fenLeiLieBiao = ref([])
 const xuanZhongFenLei = ref(null)
@@ -302,8 +311,8 @@ onMounted(() => {
 /* Hero 右侧插画 / 轮播图 */
 .yingXiongYou {
   position: relative;
-  width: 460px;
-  height: 300px;
+  width: 520px;
+  height: 344px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -311,35 +320,114 @@ onMounted(() => {
 }
 .lunBo {
   width: 100%;
-  height: 300px;
-  border-radius: 20px;
+  height: 344px;
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 22px 46px rgba(0, 0, 0, .22);
+  border: 3px solid rgba(255, 255, 255, .55);
+  box-shadow: 0 26px 54px rgba(8, 24, 50, .30);
 }
-.lunBo :deep(.el-carousel__container) { height: 300px; }
-.lunBo :deep(.el-carousel__arrow) { background: rgba(0, 0, 0, .32); }
-.lunBo :deep(.el-carousel__indicator button) { opacity: .55; }
-.lunBo :deep(.el-carousel__indicator.is-active button) { opacity: 1; width: 22px; border-radius: 999px; }
-.lunBoXiang { position: relative; width: 100%; height: 100%; cursor: pointer; }
-.lunBoXiang img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
-.lunBoXiang:hover img { transform: scale(1.04); }
+.lunBo :deep(.el-carousel__container) { height: 344px; }
+.lunBo :deep(.el-carousel__arrow) {
+  width: 34px;
+  height: 34px;
+  background: rgba(8, 24, 50, .42);
+  border-radius: 50%;
+}
+.lunBo :deep(.el-carousel__arrow:hover) { background: rgba(8, 24, 50, .66); }
+.lunBo :deep(.el-carousel__arrow) .el-icon { font-size: 16px; }
+
+.lunBoXiang { position: relative; width: 100%; height: 100%; cursor: pointer; overflow: hidden; }
+.lunBoXiang img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s ease; }
+.lunBoXiang:hover img { transform: scale(1.06); }
+
+/* 统一品牌色调叠加，弱化原图自带文字与色差 */
+.lunBoTian {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, rgba(47, 107, 255, .30), rgba(21, 197, 184, .22));
+  mix-blend-mode: multiply;
+}
 .lunBoZheZhao {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(12, 24, 48, 0) 36%, rgba(12, 24, 48, .72) 100%);
+  background: linear-gradient(180deg,
+    rgba(8, 20, 42, .12) 0%,
+    rgba(8, 20, 42, 0) 34%,
+    rgba(8, 20, 42, .50) 72%,
+    rgba(8, 20, 42, .82) 100%);
 }
-.lunBoWenZi {
+.lunBoSu {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  z-index: 4;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  color: #fff;
+  background: rgba(8, 20, 42, .35);
+  padding: 4px 10px;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+}
+.lunBoKaPian {
   position: absolute;
   left: 18px;
   right: 18px;
-  bottom: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  color: #fff;
+  bottom: 36px;
+  z-index: 3;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .14);
+  border: 1px solid rgba(255, 255, 255, .34);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .22);
 }
-.lunBoWenZi strong { font-size: 17px; font-weight: 800; letter-spacing: .5px; text-shadow: 0 2px 10px rgba(0, 0, 0, .35); }
-.lunBoWenZi span { font-size: 12.5px; opacity: .9; }
+.lunBoKaPian .lunBoMei {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(47, 107, 255, .85);
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+.lunBoKaPian strong {
+  display: block;
+  font-size: 19px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: .5px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, .35);
+}
+.lunBoKaPian .lunBoFu {
+  display: block;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, .9);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+.lunBoZhiShiQi {
+  position: absolute;
+  left: 18px;
+  bottom: 14px;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+}
+.lunBoZhiShiQi .tiao {
+  width: 16px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .45);
+  cursor: pointer;
+  transition: all .3s ease;
+}
+.lunBoZhiShiQi .tiao.xuan {
+  width: 28px;
+  background: #fff;
+}
 
 .huan1, .huan2, .huan3 { position: absolute; border-radius: 50%; }
 .huan1 { width: 270px; height: 270px; border: 1px dashed rgba(255, 255, 255, .35); }
