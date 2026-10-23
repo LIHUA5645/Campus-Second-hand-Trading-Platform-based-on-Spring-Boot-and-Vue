@@ -8,8 +8,8 @@
       <p>商务合作：19877380122</p>
       <p>项目所有者：肖沐樑 QQ：3387432690</p>
       <p>满意请给
-        <a href="https://github.com" target="_blank">GitHub Star</a> /
-        <a href="https://gitee.com" target="_blank">Gitee Star</a>
+        <a href="https://github.com/LIHUA5645/Campus-Second-hand-Trading-Platform-based-on-Spring-Boot-and-Vue" target="_blank" rel="noopener">GitHub Star ⭐</a> /
+        <a href="https://gitee.com/zhang-san-zhangshan/esjypt" target="_blank" rel="noopener">Gitee Star ⭐</a>
       </p>
       <div class="shouKuan">
         <figure>
