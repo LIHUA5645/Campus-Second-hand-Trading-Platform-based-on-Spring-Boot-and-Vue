@@ -38,7 +38,7 @@ CREATE TABLE `ai_pei_zhi` (
   `zui_jin_shi_yong_shi_jian` datetime(6) DEFAULT NULL,
   `zui_jin_zhuang_tai` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -47,6 +47,7 @@ CREATE TABLE `ai_pei_zhi` (
 
 LOCK TABLES `ai_pei_zhi` WRITE;
 /*!40000 ALTER TABLE `ai_pei_zhi` DISABLE KEYS */;
+INSERT INTO `ai_pei_zhi` VALUES (1,'','2026-10-24 17:59:24.316000','https://api.agnes-ai.cn/v1','qita','ENC:bU7Y/0YBPOxmYoifSTsnZW/B6hnnrq9Yz2Ru6WA67fdZHSnrr2ZrfXe7XFr6kLsNe5IxZ8pApefPVgTnzRK82A==','其它（OpenAI 兼容）','agnes-2.5-flash',0,_binary '',0,'','2026-10-24 18:05:16.703000','正常');
 /*!40000 ALTER TABLE `ai_pei_zhi` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -280,4 +281,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-10-24 17:22:19
+-- Dump completed on 2026-10-24 18:12:55

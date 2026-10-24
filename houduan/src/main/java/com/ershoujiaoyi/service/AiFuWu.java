@@ -7,6 +7,7 @@ import com.ershoujiaoyi.entity.ShangPin;
 import com.ershoujiaoyi.repository.AiPeiZhiRepository;
 import com.ershoujiaoyi.repository.FenLeiRepository;
 import com.ershoujiaoyi.repository.ShangPinRepository;
+import com.ershoujiaoyi.util.AESUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -48,6 +49,7 @@ public class AiFuWu {
     private final AiPeiZhiRepository aiPeiZhiRepository;
     private final ShangPinRepository shangPinRepository;
     private final FenLeiRepository fenLeiRepository;
+    private final AESUtil aesUtil;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final HttpClient httpClient = HttpClient.newBuilder()
@@ -56,10 +58,12 @@ public class AiFuWu {
 
     public AiFuWu(AiPeiZhiRepository aiPeiZhiRepository,
                   ShangPinRepository shangPinRepository,
-                  FenLeiRepository fenLeiRepository) {
+                  FenLeiRepository fenLeiRepository,
+                  AESUtil aesUtil) {
         this.aiPeiZhiRepository = aiPeiZhiRepository;
         this.shangPinRepository = shangPinRepository;
         this.fenLeiRepository = fenLeiRepository;
+        this.aesUtil = aesUtil;
     }
 
     // ==================== 对外：智能选品 ====================
@@ -140,6 +144,55 @@ public class AiFuWu {
         return jieGuo;
     }
 
+    /** 拉取 OpenAI 兼容接口的可用模型列表（GET {地址}/models），供后台「获取模型」按钮使用 */
+    public Map<String, Object> huoQuMoXingLieBiao(String diZhi, String miYao) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        try {
+            if (diZhi == null || diZhi.trim().isEmpty()) throw new IllegalStateException("请先填写接口地址");
+            if (miYao == null || miYao.trim().isEmpty()) throw new IllegalStateException("请先填写 API 密钥");
+            String yao = aesUtil.jieMi(miYao.trim());
+            if (yao == null || yao.isEmpty()) throw new IllegalStateException("API 密钥解密失败");
+            HttpRequest qing = HttpRequest.newBuilder()
+                    .uri(URI.create(zuHeMoXingDiZhi(diZhi)))
+                    .timeout(Duration.ofSeconds(20))
+                    .header("Authorization", "Bearer " + yao)
+                    .GET()
+                    .build();
+            HttpResponse<String> xiangYing = httpClient.send(qing, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            String ti = xiangYing.body() == null ? "" : xiangYing.body();
+            if (xiangYing.statusCode() < 200 || xiangYing.statusCode() >= 300) {
+                throw new IllegalStateException("HTTP " + xiangYing.statusCode() + " " + jieQu(ti, 160));
+            }
+            JsonNode gen = mapper.readTree(ti);
+            JsonNode shuJu = gen.path("data");
+            List<String> lieBiao = new ArrayList<>();
+            if (shuJu.isArray()) {
+                for (JsonNode d : shuJu) {
+                    String daiHao = d.path("id").asText("");
+                    if (!daiHao.isEmpty()) lieBiao.add(daiHao);
+                }
+            }
+            if (lieBiao.isEmpty()) throw new IllegalStateException("该接口没有返回模型列表：" + jieQu(ti, 160));
+            lieBiao.sort(null);
+            jieGuo.put("chengGong", true);
+            jieGuo.put("moXingLie", lieBiao);
+            jieGuo.put("xinXi", "共获取 " + lieBiao.size() + " 个模型");
+        } catch (Exception e) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", miaoShuCuoWu(e.getMessage()));
+        }
+        return jieGuo;
+    }
+
+    /** 由接口地址拼出模型列表地址：去掉末尾斜杠与 /chat/completions 后拼 /models */
+    private String zuHeMoXingDiZhi(String diZhi) {
+        String d = diZhi.trim();
+        while (d.endsWith("/")) d = d.substring(0, d.length() - 1);
+        if (d.endsWith("/chat/completions")) d = d.substring(0, d.length() - "/chat/completions".length());
+        if (d.endsWith("/models")) return d;
+        return d + "/models";
+    }
+
     /** 前台查询：是否已有可用密钥 */
     public Map<String, Object> zhuangTai() {
         List<AiPeiZhi> quanBu = aiPeiZhiRepository.findAllByOrderByPaiXuAscIdAsc();
@@ -162,8 +215,9 @@ public class AiFuWu {
         if (peiZhi.getDiZhi() == null || peiZhi.getDiZhi().trim().isEmpty()) {
             throw new IllegalStateException("接口地址为空");
         }
-        if (peiZhi.getMiYao() == null || peiZhi.getMiYao().trim().isEmpty()) {
-            throw new IllegalStateException("API 密钥为空");
+        String yao = aesUtil.jieMi(peiZhi.getMiYao());
+        if (yao == null || yao.trim().isEmpty()) {
+            throw new IllegalStateException("API 密钥为空或解密失败");
         }
         if (peiZhi.getMoXing() == null || peiZhi.getMoXing().trim().isEmpty()) {
             throw new IllegalStateException("模型名称为空");
@@ -198,7 +252,7 @@ public class AiFuWu {
                 .uri(URI.create(zuHeDiZhi(peiZhi.getDiZhi())))
                 .timeout(CHAO_SHI)
                 .header("Content-Type", "application/json; charset=utf-8")
-                .header("Authorization", "Bearer " + peiZhi.getMiYao().trim())
+                .header("Authorization", "Bearer " + yao.trim())
                 .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(qingQiu), StandardCharsets.UTF_8))
                 .build();
 

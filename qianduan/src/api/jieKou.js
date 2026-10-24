@@ -153,6 +153,11 @@ export default {
     headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id },
     timeout: 120000
   }),
+  adminAiMoXing: (data) => http.post('/admin/ai/moban', null, {
+    params: { id: data.id || undefined, diZhi: data.diZhi, miYao: data.miYao || '' },
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id },
+    timeout: 60000
+  }),
 
   // AI 助手形象（头像 / 名称 / 介绍）
   aiPeiZhi: () => http.get('/peizhi/ai'),

@@ -334,7 +334,7 @@
           <el-table :data="lieBiao" border stripe>
             <el-table-column prop="id" label="ID" width="60" />
             <el-table-column prop="mingCheng" label="名称" width="140" show-overflow-tooltip />
-            <el-table-column label="服务商" width="110">
+            <el-table-column label="服务商" width="170" show-overflow-tooltip>
               <template #default="{ row }">{{ fuWuShangMing(row.fuWuShang) }}</template>
             </el-table-column>
             <el-table-column prop="diZhi" label="接口地址" min-width="200" show-overflow-tooltip />
@@ -549,7 +549,22 @@
           </el-select>
         </el-form-item>
         <el-form-item label="接口地址"><el-input v-model="aiBiaoDan.diZhi" placeholder="如 https://api.deepseek.com/v1" /></el-form-item>
-        <el-form-item label="模型名称"><el-input v-model="aiBiaoDan.moXing" placeholder="如 deepseek-chat" /></el-form-item>
+        <el-form-item label="模型名称">
+          <div class="moXingHang">
+            <el-select
+              v-model="aiBiaoDan.moXing"
+              filterable
+              allow-create
+              default-first-option
+              :loading="aiMoXingZhong"
+              :placeholder="aiMoXingXuan.length ? '从列表选择或直接输入' : '如 deepseek-chat，填好地址和密钥后点「获取模型」'"
+              style="flex: 1"
+            >
+              <el-option v-for="m in aiMoXingXuan" :key="m" :label="m" :value="m" />
+            </el-select>
+            <el-button :loading="aiMoXingZhong" @click="huoQuMoXing">获取模型</el-button>
+          </div>
+        </el-form-item>
         <el-form-item label="API 密钥">
           <el-input
             v-model="aiBiaoDan.miYao"
@@ -1258,6 +1273,8 @@ const aiDuiHua = ref(false)
 const aiTiJiaoZhong = ref(false)
 const aiBiaoDan = ref({})
 const ceShiZhong = ref(0)
+const aiMoXingZhong = ref(false)
+const aiMoXingXuan = ref([])
 
 const daKaiAi = (row) => {
   aiBiaoDan.value = row
@@ -1270,7 +1287,29 @@ const daKaiAi = (row) => {
         mingCheng: '', fuWuShang: 'deepseek', diZhi: 'https://api.deepseek.com/v1',
         moXing: 'deepseek-chat', miYao: '', shiTu: false, paiXu: 0, zhuangTai: 0, beiZhu: ''
       }
+  aiMoXingXuan.value = []
   aiDuiHua.value = true
+}
+
+/** 自动获取服务商的可用模型列表（编辑时密钥留空则用已保存的密钥） */
+const huoQuMoXing = async () => {
+  const bd = aiBiaoDan.value
+  if (!bd.diZhi || !bd.diZhi.trim()) { ElMessage.warning('请先填写接口地址'); return }
+  aiMoXingZhong.value = true
+  try {
+    const res = await jieKou.adminAiMoXing({ id: bd.id || null, diZhi: bd.diZhi.trim(), miYao: bd.miYao || '' })
+    if (res.data.chengGong) {
+      aiMoXingXuan.value = res.data.moXingLie || []
+      ElMessage.success(res.data.xinXi + '，点击输入框从下拉列表选择')
+      if (!bd.moXing && aiMoXingXuan.value.length) bd.moXing = aiMoXingXuan.value[0]
+    } else {
+      ElMessage.error(res.data.xinXi || '获取模型列表失败')
+    }
+  } catch (e) {
+    ElMessage.error('获取失败，请确认后端已启动且网络可访问')
+  } finally {
+    aiMoXingZhong.value = false
+  }
 }
 const tianMoRen = (daiHao) => {
   const s = fuWuShangLie.find(x => x.fuWuShang === daiHao)
@@ -1394,6 +1433,7 @@ onMounted(() => {
 .zxBiaoDan { max-width: 620px; padding-top: 6px; }
 .biaoDanTiShi { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-top: 4px; }
 .touXiangBianJi { display: flex; align-items: center; gap: 14px; }
+.moXingHang { display: flex; align-items: center; gap: 8px; width: 100%; }
 
 .ceBianCaiDan { background: transparent; border-right: none; }
 .ceBianCaiDan :deep(.el-menu-item) { color: #c5ccd6; }

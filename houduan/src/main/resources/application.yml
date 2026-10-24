@@ -24,3 +24,7 @@ spring:
 # 图片上传目录（相对后端运行目录），对应访问路径 /uploads/**
 ershou:
   upload-dir: upload
+
+# API 密钥可逆加密密钥（用于数据库落盘加密，请妥善保管、勿泄露）
+ai:
+  miYaoKey: esjypt-aes-2026-key

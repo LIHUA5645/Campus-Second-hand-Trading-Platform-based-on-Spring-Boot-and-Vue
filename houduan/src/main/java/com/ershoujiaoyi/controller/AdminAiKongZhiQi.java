@@ -6,6 +6,7 @@ import com.ershoujiaoyi.entity.YongHu;
 import com.ershoujiaoyi.repository.AiPeiZhiRepository;
 import com.ershoujiaoyi.repository.YongHuRepository;
 import com.ershoujiaoyi.service.AiFuWu;
+import com.ershoujiaoyi.util.AESUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,6 +30,8 @@ public class AdminAiKongZhiQi {
     private YongHuRepository yongHuRepository;
     @Autowired
     private AiFuWu aiFuWu;
+    @Autowired
+    private AESUtil aesUtil;
 
     @GetMapping("/liebiao")
     public Map<String, Object> liebiao(@RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId) {
@@ -80,7 +83,7 @@ public class AdminAiKongZhiQi {
         muBiao.setDiZhi(peiZhi.getDiZhi().trim());
         muBiao.setMoXing(peiZhi.getMoXing().trim());
         if (peiZhi.getMiYao() != null && !peiZhi.getMiYao().trim().isEmpty()) {
-            muBiao.setMiYao(peiZhi.getMiYao().trim());
+            muBiao.setMiYao(aesUtil.jiaMi(peiZhi.getMiYao().trim()));
         }
         muBiao.setShiTu(Boolean.TRUE.equals(peiZhi.getShiTu()));
         muBiao.setZhuangTai(peiZhi.getZhuangTai() == null ? 0 : peiZhi.getZhuangTai());
@@ -149,7 +152,7 @@ public class AdminAiKongZhiQi {
             peiZhi.setFuWuShang(fuWuShang);
             peiZhi.setDiZhi(diZhi);
             peiZhi.setMoXing(benMoXing);
-            peiZhi.setMiYao(miYao);
+            peiZhi.setMiYao(aesUtil.jiaMi(miYao));
             peiZhi.setShiTu(shiTu);
             peiZhi.setZhuangTai(0);
             peiZhi.setPaiXu(paiXuQiShi + xuHao);
@@ -225,6 +228,31 @@ public class AdminAiKongZhiQi {
         return jie;
     }
 
+    /** 拉取服务商的可用模型列表（OpenAI 兼容 /models）；编辑时密钥留空则用已保存的密钥 */
+    @PostMapping("/moban")
+    public Map<String, Object> moXingLieBiao(@RequestParam(required = false) Long id,
+                                             @RequestParam(required = false) String diZhi,
+                                             @RequestParam(required = false) String miYao,
+                                             @RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        if (!shiFouGuanLiYuan(guanLiYuanId)) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "只有管理员可以配置 AI 接口，请重新登录后台");
+            return jieGuo;
+        }
+        String dizhi = diZhi == null ? "" : diZhi.trim();
+        String yao = miYao == null ? "" : miYao.trim();
+        if (id != null) {
+            AiPeiZhi peiZhi = aiPeiZhiRepository.findById(id).orElse(null);
+            if (peiZhi != null) {
+                if (dizhi.isEmpty() && peiZhi.getDiZhi() != null) dizhi = peiZhi.getDiZhi();
+                if (yao.isEmpty() && peiZhi.getMiYao() != null) yao = aesUtil.jieMi(peiZhi.getMiYao());
+            }
+        }
+        jieGuo.putAll(aiFuWu.huoQuMoXingLieBiao(dizhi, yao));
+        return jieGuo;
+    }
+
     // ==================== 内部方法 ====================
 
     private boolean shiFouGuanLiYuan(Long guanLiYuanId) {
@@ -258,7 +286,7 @@ public class AdminAiKongZhiQi {
         map.put("zuiJinCuoWu", peiZhi.getZuiJinCuoWu());
         map.put("chuangJianShiJian", peiZhi.getChuangJianShiJian());
         map.put("zuiJinShiYongShiJian", peiZhi.getZuiJinShiYongShiJian());
-        map.put("miYao", xianShiMiYao ? peiZhi.getMiYao() : zheBi(peiZhi.getMiYao()));
+        map.put("miYao", xianShiMiYao ? peiZhi.getMiYao() : zheBi(aesUtil.jieMi(peiZhi.getMiYao())));
         return map;
     }
 
