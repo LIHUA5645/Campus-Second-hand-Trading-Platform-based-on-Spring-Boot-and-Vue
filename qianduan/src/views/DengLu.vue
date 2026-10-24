@@ -76,6 +76,7 @@
                   <template #prefix><el-icon><Lock /></el-icon></template>
                 </el-input>
               </el-form-item>
+              <div class="wangJiHang"><span class="lk" @click="daKaiZhaoHui">忘记密码？</span></div>
               <el-button type="primary" size="large" class="tiJiao" @click="dengLu">登 录</el-button>
             </el-form>
           </el-tab-pane>
@@ -118,6 +119,37 @@
         </p>
       </div>
     </div>
+
+    <!-- 找回密码 -->
+    <el-dialog v-model="zhaoHuiXian" title="找回密码" width="420px" align-center class="zhaoHuiDuiHua">
+      <p class="zhaoHuiTiShi">输入注册时的用户名、手机号和学号，校验通过后即可设置新密码。</p>
+      <el-form label-position="top">
+        <el-form-item label="用户名">
+          <el-input v-model="zhaoHui.yongHuMing" size="large" placeholder="请输入用户名">
+            <template #prefix><el-icon><User /></el-icon></template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="zhaoHui.shouJi" size="large" placeholder="注册时填写的手机号">
+            <template #prefix><el-icon><Iphone /></el-icon></template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="学号">
+          <el-input v-model="zhaoHui.xueHao" size="large" placeholder="注册时填写的学号">
+            <template #prefix><el-icon><Reading /></el-icon></template>
+          </el-input>
+        </el-form-item>
+        <el-form-item label="新密码">
+          <el-input v-model="zhaoHui.xinMiMa" type="password" size="large" show-password placeholder="设置新的登录密码">
+            <template #prefix><el-icon><Lock /></el-icon></template>
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="zhaoHuiXian = false">取消</el-button>
+        <el-button type="primary" @click="tiJiaoZhaoHui">确认重置</el-button>
+      </template>
+    </el-dialog>
 
     <el-dialog v-model="xyShow" :title="xyTitle" width="560px" append-to-body class="xyDialog">
       <div class="xyBody">
@@ -288,6 +320,38 @@ const zhuce = async () => {
     dengLuForm.value.miMa = zhuceForm.value.miMa
   } else {
     ElMessage.error(res.data.xinXi || '注册失败')
+  }
+}
+
+// 找回密码
+const zhaoHuiXian = ref(false)
+const zhaoHui = ref({ yongHuMing: '', shouJi: '', xueHao: '', xinMiMa: '' })
+const daKaiZhaoHui = () => {
+  zhaoHui.value.yongHuMing = dengLuForm.value.yongHuMing
+  zhaoHui.value.shouJi = ''
+  zhaoHui.value.xueHao = ''
+  zhaoHui.value.xinMiMa = ''
+  zhaoHuiXian.value = true
+}
+const tiJiaoZhaoHui = async () => {
+  const z = zhaoHui.value
+  if (!z.yongHuMing || !z.shouJi || !z.xueHao || !z.xinMiMa) {
+    ElMessage.warning('请填写完整信息')
+    return
+  }
+  if (z.xinMiMa.length < 6) {
+    ElMessage.warning('新密码至少 6 位')
+    return
+  }
+  const res = await jieKou.zhaohuiMiMa(z.yongHuMing, z.shouJi, z.xueHao, z.xinMiMa)
+  if (res.data.chengGong) {
+    ElMessage.success('密码已重置，请用新密码登录')
+    zhaoHuiXian.value = false
+    huoYue.value = 'denglu'
+    dengLuForm.value.yongHuMing = z.yongHuMing
+    dengLuForm.value.miMa = ''
+  } else {
+    ElMessage.error(res.data.xinXi || '找回失败')
   }
 }
 </script>
@@ -474,6 +538,19 @@ const zhuce = async () => {
 }
 .tiJiao:hover { background: #1d4ed8; }
 .tiJiao:active { transform: scale(.99); }
+
+.wangJiHang { display: flex; justify-content: flex-end; margin: -6px 0 10px; }
+.wangJiHang .lk { font-size: 12.5px; color: #2563eb; cursor: pointer; }
+.wangJiHang .lk:hover { text-decoration: underline; }
+
+.zhaoHuiTiShi { margin: 0 0 14px; font-size: 13px; color: #64748b; line-height: 1.7; }
+.zhaoHuiDuiHua :deep(.el-form-item__label) { color: #334155; font-weight: 600; padding-bottom: 4px; }
+.zhaoHuiDuiHua :deep(.el-input__wrapper) {
+  border-radius: 10px;
+  box-shadow: 0 0 0 1px #e2e8f0 inset;
+}
+.zhaoHuiDuiHua :deep(.el-input__wrapper.is-focus) { box-shadow: 0 0 0 2px #2563eb inset; }
+.zhaoHuiDuiHua :deep(.el-input__inner) { height: 38px; }
 
 .xieYi { margin: 20px 0 0; text-align: center; font-size: 12px; color: #94a3b8; }
 .xieYi .lk { color: #2563eb; cursor: pointer; }

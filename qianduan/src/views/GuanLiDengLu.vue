@@ -59,19 +59,71 @@ const dengLu = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(120deg, #2f6bff 0%, #2b8bf0 48%, #15c5b8 100%);
   padding: 20px;
+  background-image:
+    linear-gradient(120deg, rgba(15, 23, 42, .45), rgba(37, 99, 235, .32)),
+    url('/images/houtai-denglu.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .kaPian {
-  width: 360px;
-  background: #fff;
-  border-radius: 20px;
-  padding: 34px 30px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, .18);
+  width: 380px;
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 22px;
+  padding: 40px 34px 34px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .30);
+  border: 1px solid rgba(255, 255, 255, .6);
+  animation: houTaiRu .5s ease both;
 }
-.biaoTi { font-size: 24px; font-weight: 800; color: #1f2733; text-align: center; }
-.fuBiaoTi { text-align: center; color: #98a2b3; font-size: 13px; margin: 6px 0 24px; }
-.dengLuAnNiu { width: 100%; margin-top: 4px; }
-.tiaoZhuan { text-align: center; font-size: 12.5px; color: #98a2b3; margin: 16px 0 0; }
-.tiaoZhuan span { color: #2f6bff; cursor: pointer; }
+@keyframes houTaiRu { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+.biaoTi {
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  letter-spacing: 1px;
+  position: relative;
+  padding-bottom: 14px;
+}
+.biaoTi::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #2563eb, #15c5b8);
+}
+.fuBiaoTi { text-align: center; color: #64748b; font-size: 13.5px; margin: 16px 0 26px; }
+.kaPian :deep(.el-input__wrapper) {
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #e2e8f0 inset;
+  transition: box-shadow .2s ease;
+}
+.kaPian :deep(.el-input__wrapper:hover) { box-shadow: 0 0 0 1px #cbd5e1 inset; }
+.kaPian :deep(.el-input__wrapper.is-focus) { box-shadow: 0 0 0 2px #2563eb inset; }
+.kaPian :deep(.el-input__inner) { height: 42px; }
+.dengLuAnNiu {
+  width: 100%;
+  margin-top: 6px;
+  height: 46px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #2563eb, #15c5b8);
+  color: #fff;
+  transition: filter .2s ease, transform .12s ease;
+}
+.dengLuAnNiu:hover { filter: brightness(1.06); }
+.dengLuAnNiu:active { transform: scale(.99); }
+.tiaoZhuan { text-align: center; font-size: 12.5px; color: #94a3b8; margin: 18px 0 0; }
+.tiaoZhuan span { color: #2563eb; cursor: pointer; }
 </style>

@@ -32,19 +32,31 @@ public class WenJianKongZhiQi {
     private String shangChuanMuLu;
 
     private static final List<String> YUN_XU = Arrays.asList("jpg", "jpeg", "png", "webp", "gif", "bmp");
-    private static final List<String> YUN_XU_LEI_BIE = Arrays.asList("lunbo", "shangpin");
+    private static final List<String> YUN_XU_LEI_BIE = Arrays.asList("lunbo", "shangpin", "ai", "geren", "touxiang");
     private static final long ZUI_DA = 8L * 1024 * 1024;
 
     @PostMapping("/tuxiang")
     public Map<String, Object> shangChuanTuXiang(@RequestParam("file") MultipartFile wenJian,
                                                  @RequestParam(value = "leiBie", required = false) String leiBie,
-                                                 @RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId) {
+                                                 @RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId,
+                                                 @RequestHeader(value = "YongHuId", required = false) Long yongHuId) {
         Map<String, Object> jieGuo = new HashMap<>();
-        YongHu guanLiYuan = guanLiYuanId == null ? null : yongHuRepository.findById(guanLiYuanId).orElse(null);
-        if (guanLiYuan == null || guanLiYuan.getGuanLiYuan() == null || !guanLiYuan.getGuanLiYuan()) {
-            jieGuo.put("chengGong", false);
-            jieGuo.put("xinXi", "只有管理员可以上传图片，请重新登录后台");
-            return jieGuo;
+        // geren（个人头像）类允许登录用户上传；其余类别仍仅限管理员
+        boolean shiGerentTu = "geren".equals(leiBie);
+        if (shiGerentTu) {
+            YongHu yongHu = yongHuId == null ? null : yongHuRepository.findById(yongHuId).orElse(null);
+            if (yongHu == null) {
+                jieGuo.put("chengGong", false);
+                jieGuo.put("xinXi", "请先登录后再上传头像");
+                return jieGuo;
+            }
+        } else {
+            YongHu guanLiYuan = guanLiYuanId == null ? null : yongHuRepository.findById(guanLiYuanId).orElse(null);
+            if (guanLiYuan == null || guanLiYuan.getGuanLiYuan() == null || !guanLiYuan.getGuanLiYuan()) {
+                jieGuo.put("chengGong", false);
+                jieGuo.put("xinXi", "只有管理员可以上传图片，请重新登录后台");
+                return jieGuo;
+            }
         }
         if (wenJian == null || wenJian.isEmpty()) {
             jieGuo.put("chengGong", false);

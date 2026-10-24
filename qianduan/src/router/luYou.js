@@ -8,6 +8,7 @@ import WoDeDingDan from '@/views/WoDeDingDan.vue'
 import GeRenZhongXin from '@/views/GeRenZhongXin.vue'
 import GuanLiDengLu from '@/views/GuanLiDengLu.vue'
 import GuanLi from '@/views/GuanLi.vue'
+import AiZhuShou from '@/views/AiZhuShou.vue'
 
 const luYou = createRouter({
   history: createWebHistory(),
@@ -19,6 +20,7 @@ const luYou = createRouter({
     { path: '/fabu', component: FaBuShangPin },
     { path: '/dingdan', component: WoDeDingDan },
     { path: '/geren', component: GeRenZhongXin },
+    { path: '/ai', component: AiZhuShou },
     { path: '/admin/login', component: GuanLiDengLu },
     { path: '/admin', component: GuanLi }
   ]

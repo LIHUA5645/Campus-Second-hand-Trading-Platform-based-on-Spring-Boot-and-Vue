@@ -10,6 +10,8 @@
         <el-menu-item index="fenlei"><el-icon><Menu /></el-icon><span>分类管理</span></el-menu-item>
         <el-menu-item index="lunbo"><el-icon><Picture /></el-icon><span>轮播图管理</span></el-menu-item>
         <el-menu-item index="gonggao"><el-icon><Bell /></el-icon><span>公告管理</span></el-menu-item>
+        <el-menu-item index="ai"><el-icon><MagicStick /></el-icon><span>AI 接口配置</span></el-menu-item>
+        <el-menu-item index="zhuangxiu"><el-icon><Brush /></el-icon><span>页面装修</span></el-menu-item>
       </el-menu>
     </el-aside>
 
@@ -68,6 +70,14 @@
           </div>
           <el-table :data="lieBiao" border stripe>
             <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column label="头像" width="76" align="center">
+              <template #default="{ row }">
+                <el-avatar :size="36" v-if="row.touXiang" class="yongHuTouXiang">
+                  <img :src="row.touXiang" alt="头像" />
+                </el-avatar>
+                <el-avatar v-else :size="36">{{ (row.xingMing || row.yongHuMing || '?').slice(0, 1) }}</el-avatar>
+              </template>
+            </el-table-column>
             <el-table-column prop="yongHuMing" label="用户名" />
             <el-table-column prop="xingMing" label="昵称" />
             <el-table-column prop="shouJi" label="手机" />
@@ -80,10 +90,12 @@
             <el-table-column label="注册时间">
               <template #default="{ row }">{{ shiJian(row.zhuCeShiJian) }}</template>
             </el-table-column>
-            <el-table-column label="操作" width="200" fixed="right">
+            <el-table-column label="操作" width="320" fixed="right">
               <template #default="{ row }">
+                <el-button type="success" link size="small" @click="daKaiYongHuBianJi(row)">编辑</el-button>
                 <el-button v-if="!row.guanLiYuan" type="primary" link size="small" @click="sheZhiGuanLiYuan(row, true)">设为管理员</el-button>
                 <el-button v-else type="warning" link size="small" @click="sheZhiGuanLiYuan(row, false)">取消管理员</el-button>
+                <el-button v-if="row.touXiang" type="info" link size="small" @click="chongZhiTouXiang(row)">重置头像</el-button>
                 <el-button type="danger" link size="small" @click="shanChuYongHu(row.id)">删除</el-button>
               </template>
             </el-table-column>
@@ -263,6 +275,144 @@
             </el-table-column>
           </el-table>
         </div>
+
+        <!-- AI 接口配置 -->
+        <div v-else-if="active === 'ai'">
+          <!-- AI 助手形象 -->
+          <div class="aiXingXiangKa">
+            <div class="xingXiangZuo">
+              <el-upload
+                class="xingXiangShangChuan"
+                :show-file-list="false"
+                :http-request="shangChuanTouXiang"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+              >
+                <div class="xingXiangTu" title="点击更换头像">
+                  <img v-if="aiXingXiang.aiTouXiang" :src="aiXingXiang.aiTouXiang" alt="AI 头像" />
+                  <el-icon v-else class="moRenTuBiao"><MagicStick /></el-icon>
+                  <div class="xingXiangZheZhao">
+                    <el-icon><Camera /></el-icon>
+                    <span>更换头像</span>
+                  </div>
+                  <span class="xingXiangBiao">AI</span>
+                </div>
+              </el-upload>
+              <div class="xingXiangTiShi">支持 JPG / PNG / WebP<br />方形图片效果最佳</div>
+            </div>
+            <div class="xingXiangYou">
+              <div class="xingXiangBiaoTi">
+                <span>助手形象</span>
+                <em>头像、名称与介绍会显示在用户端的 AI 聊天页和右下角悬浮入口</em>
+              </div>
+              <div class="xingXiangHang">
+                <span class="xingXiangBiaoQian">AI 名称</span>
+                <el-input v-model="aiXingXiang.aiMingCheng" placeholder="小淘" style="width: 240px" />
+              </div>
+              <div class="xingXiangHang">
+                <span class="xingXiangBiaoQian">一句话介绍</span>
+                <el-input
+                  v-model="aiXingXiang.aiJieShao"
+                  type="textarea"
+                  :rows="2"
+                  placeholder="你的校园闲置导购小助手，说出需求或发图，帮你挑最合适的闲置～"
+                  style="flex: 1"
+                />
+              </div>
+              <div class="xingXiangCaoZuo">
+                <el-button type="success" :loading="aiXingXiangZhong" @click="baoCunAiXingXiang">
+                  <el-icon><Check /></el-icon> 保存形象
+                </el-button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gongJu">
+            <el-button type="primary" @click="daKaiAi()"><el-icon><Plus /></el-icon> 添加密钥</el-button>
+            <el-button type="success" plain @click="daKaiPiLiang"><el-icon><Upload /></el-icon> 批量添加多个</el-button>
+            <span class="tiShi">按「排序」从小到大依次调用，前一个失败会自动换下一个；识图请求优先使用「支持识图」的配置</span>
+          </div>
+          <el-table :data="lieBiao" border stripe>
+            <el-table-column prop="id" label="ID" width="60" />
+            <el-table-column prop="mingCheng" label="名称" width="140" show-overflow-tooltip />
+            <el-table-column label="服务商" width="110">
+              <template #default="{ row }">{{ fuWuShangMing(row.fuWuShang) }}</template>
+            </el-table-column>
+            <el-table-column prop="diZhi" label="接口地址" min-width="200" show-overflow-tooltip />
+            <el-table-column prop="moXing" label="模型" width="150" show-overflow-tooltip />
+            <el-table-column label="密钥" width="170">
+              <template #default="{ row }"><span class="miYaoWen">{{ row.miYao || '—' }}</span></template>
+            </el-table-column>
+            <el-table-column label="识图" width="72">
+              <template #default="{ row }">
+                <el-tag :type="row.shiTu ? 'success' : 'info'" size="small">{{ row.shiTu ? '支持' : '否' }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="paiXu" label="排序" width="66" />
+            <el-table-column label="连通性" width="150">
+              <template #default="{ row }">
+                <el-tag :type="row.zuiJinZhuangTai === '异常' ? 'danger' : row.zuiJinZhuangTai === '正常' ? 'success' : 'info'" size="small">
+                  {{ row.zuiJinZhuangTai || '未测试' }}
+                </el-tag>
+                <div v-if="row.zuiJinCuoWu" class="cuoWuWen">{{ row.zuiJinCuoWu }}</div>
+              </template>
+            </el-table-column>
+            <el-table-column label="状态" width="80">
+              <template #default="{ row }">
+                <el-tag :type="row.zhuangTai === 0 ? 'success' : 'info'" size="small">{{ row.zhuangTai === 0 ? '启用' : '停用' }}</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column label="操作" width="240" fixed="right">
+              <template #default="{ row }">
+                <el-button type="primary" link size="small" :loading="ceShiZhong === row.id" @click="ceShiAi(row)">测试</el-button>
+                <el-button type="primary" link size="small" @click="daKaiAi(row)">编辑</el-button>
+                <el-button :type="row.zhuangTai === 0 ? 'warning' : 'success'" link size="small" @click="qieHuanAiZt(row)">
+                  {{ row.zhuangTai === 0 ? '停用' : '启用' }}
+                </el-button>
+                <el-button type="danger" link size="small" @click="shanChuAi(row.id)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div v-if="!lieBiao.length" class="kongWen">还没有配置任何 AI 密钥，点上方「批量添加多个」可以一次粘贴多行密钥。</div>
+        </div>
+
+        <!-- 页面装修 -->
+        <div v-if="active === 'zhuangxiu'">
+          <div class="quKuai"><h3>首页装修</h3><span class="tiShi">修改首页顶部宣传区的文案，保存后前台立即生效；留空则恢复默认文案</span></div>
+          <el-form label-width="120px" class="zxBiaoDan">
+            <el-form-item label="顶部徽标">
+              <el-input v-model="zx.huiBiao" maxlength="30" show-word-limit placeholder="如：校园闲置 · 安心流转" />
+            </el-form-item>
+            <el-form-item label="主标题第一行">
+              <el-input v-model="zx.biaoTi1" maxlength="30" show-word-limit placeholder="如：让校园里的" />
+            </el-form-item>
+            <el-form-item label="主标题高亮词">
+              <el-input v-model="zx.gaoLiang" maxlength="20" show-word-limit placeholder="嵌入第一行末尾、主题色突出显示，如：闲置" />
+            </el-form-item>
+            <el-form-item label="主标题第二行">
+              <el-input v-model="zx.biaoTi2" maxlength="30" show-word-limit placeholder="如：流动起来" />
+            </el-form-item>
+            <el-form-item label="描述文案">
+              <el-input v-model="zx.miaoShu" type="textarea" :rows="2" maxlength="100" show-word-limit placeholder="标题下的一句介绍" />
+            </el-form-item>
+            <el-form-item label="统计一标签">
+              <el-input v-model="zx.tongJi1BiaoQian" maxlength="10" placeholder="在售好物" />
+              <div class="biaoDanTiShi">数值自动显示当前在售商品数</div>
+            </el-form-item>
+            <el-form-item label="统计二标签">
+              <el-input v-model="zx.tongJi2BiaoQian" maxlength="10" placeholder="商品分类" />
+              <div class="biaoDanTiShi">数值自动显示当前商品分类数</div>
+            </el-form-item>
+            <el-form-item label="统计三数值">
+              <el-input v-model="zx.tongJi3Zhi" maxlength="10" placeholder="如：24h" />
+            </el-form-item>
+            <el-form-item label="统计三标签">
+              <el-input v-model="zx.tongJi3BiaoQian" maxlength="10" placeholder="极速交易" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :loading="zxBaoCunZhong" @click="baoCunZhuangXiu">保存装修</el-button>
+            </el-form-item>
+          </el-form>
+        </div>
       </el-main>
     </el-container>
 
@@ -388,6 +538,107 @@
         <el-button type="primary" @click="baoCunGongGao">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- AI 接口编辑弹窗 -->
+    <el-dialog v-model="aiDuiHua" :title="aiBiaoDan.id ? '编辑 AI 接口（ID ' + aiBiaoDan.id + '）' : '添加 AI 接口'" width="620px">
+      <el-form :model="aiBiaoDan" label-width="96px">
+        <el-form-item label="名称"><el-input v-model="aiBiaoDan.mingCheng" placeholder="如：DeepSeek 主号" /></el-form-item>
+        <el-form-item label="服务商">
+          <el-select v-model="aiBiaoDan.fuWuShang" style="width: 100%" @change="tianMoRen">
+            <el-option v-for="s in fuWuShangLie" :key="s.fuWuShang" :label="s.ming" :value="s.fuWuShang" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="接口地址"><el-input v-model="aiBiaoDan.diZhi" placeholder="如 https://api.deepseek.com/v1" /></el-form-item>
+        <el-form-item label="模型名称"><el-input v-model="aiBiaoDan.moXing" placeholder="如 deepseek-chat" /></el-form-item>
+        <el-form-item label="API 密钥">
+          <el-input
+            v-model="aiBiaoDan.miYao"
+            type="password"
+            show-password
+            :placeholder="aiBiaoDan.id ? '留空表示不修改原密钥' : 'sk-xxxxxxxxxx'"
+          />
+        </el-form-item>
+        <el-form-item label="支持识图"><el-switch v-model="aiBiaoDan.shiTu" active-text="支持" inactive-text="不支持" /></el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-form-item label="排序"><el-input-number v-model="aiBiaoDan.paiXu" :min="0" /></el-form-item>
+          </el-col>
+          <el-col :span="12">
+            <el-form-item label="状态">
+              <el-switch v-model="aiBiaoDan.zhuangTai" :active-value="0" :inactive-value="1" active-text="启用" inactive-text="停用" />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="备注"><el-input v-model="aiBiaoDan.beiZhu" type="textarea" :rows="2" placeholder="选填，方便自己区分" /></el-form-item>
+      </el-form>
+      <div class="biaoDanTiShi">密钥只保存在服务器，列表里只显示前后各几位；填好后记得点「测试」确认能用。</div>
+      <template #footer>
+        <el-button @click="aiDuiHua = false">取消</el-button>
+        <el-button type="primary" :loading="aiTiJiaoZhong" @click="baoCunAi">保存</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- AI 密钥批量添加弹窗 -->
+    <el-dialog v-model="piLiangDuiHua" title="批量添加 API 密钥" width="640px">
+      <el-form label-width="96px">
+        <el-form-item label="服务商">
+          <el-select v-model="piLiang.fuWuShang" style="width: 100%" @change="tianPiLiangMoRen">
+            <el-option v-for="s in fuWuShangLie" :key="s.fuWuShang" :label="s.ming" :value="s.fuWuShang" />
+          </el-select>
+        </el-form-item>
+        <el-row :gutter="16">
+          <el-col :span="16">
+            <el-form-item label="接口地址"><el-input v-model="piLiang.diZhi" placeholder="如 https://api.deepseek.com/v1" /></el-form-item>
+          </el-col>
+          <el-col :span="8">
+            <el-form-item label="支持识图"><el-switch v-model="piLiang.shiTu" /></el-form-item>
+          </el-col>
+        </el-row>
+        <el-form-item label="模型名称"><el-input v-model="piLiang.moXing" placeholder="如 deepseek-chat" /></el-form-item>
+        <el-form-item label="密钥列表">
+          <el-input
+            v-model="piLiang.neiRong"
+            type="textarea"
+            :rows="9"
+            placeholder="每行一个密钥，空行和 # 开头的行会自动跳过：&#10;sk-aaaaaaaaaaaa&#10;备用号|sk-bbbbbbbbbbbb&#10;第三号|sk-cccccccccccc|gpt-4o-mini"
+          />
+        </el-form-item>
+      </el-form>
+      <div class="biaoDanTiShi">
+        三种写法都支持：<b>密钥</b> ／ <b>名称|密钥</b> ／ <b>名称|密钥|模型</b>（模型留空则用上面填的模型）。
+        批量添加的密钥会排在现有配置之后，状态默认启用。
+      </div>
+      <template #footer>
+        <el-button @click="piLiangDuiHua = false">取消</el-button>
+        <el-button type="success" :loading="piLiangZhong" @click="piLiangTianJia">批量添加</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 用户编辑弹窗 -->
+    <el-dialog v-model="yongHuDuiHua" :title="'编辑用户 — ' + (yongHuBiaoDan.yongHuMing || '')" width="520px">
+      <el-form :model="yongHuBiaoDan" label-width="90px">
+        <el-form-item label="用户名"><el-input :model-value="yongHuBiaoDan.yongHuMing" disabled /></el-form-item>
+        <el-form-item label="头像">
+          <div class="touXiangBianJi">
+            <el-avatar :size="56" v-if="yongHuBiaoDan.touXiang"><img :src="yongHuBiaoDan.touXiang" alt="头像" /></el-avatar>
+            <el-avatar v-else :size="56">{{ (yongHuBiaoDan.yongHuMing || '?').slice(0, 1) }}</el-avatar>
+            <div class="touXiangCaoZuo">
+              <el-button size="small" :loading="yongHuTouXiangZhong" @click="xuanZeYongHuTouXiang">上传新头像</el-button>
+              <el-button v-if="yongHuBiaoDan.touXiang" size="small" @click="yongHuBiaoDan.touXiang = ''">恢复默认</el-button>
+            </div>
+            <input ref="yongHuTouXiangShuRu" type="file" accept="image/png,image/jpeg,image/webp,image/gif" class="yinCangWenJian" @change="yongHuTouXiangWenJian" />
+          </div>
+        </el-form-item>
+        <el-form-item label="昵称"><el-input v-model="yongHuBiaoDan.xingMing" maxlength="20" placeholder="用户昵称" /></el-form-item>
+        <el-form-item label="手机"><el-input v-model="yongHuBiaoDan.shouJi" maxlength="20" placeholder="手机号" /></el-form-item>
+        <el-form-item label="学号"><el-input v-model="yongHuBiaoDan.xueHao" maxlength="20" placeholder="学号" /></el-form-item>
+        <el-form-item label="新密码"><el-input v-model="yongHuBiaoDan.xinMiMa" type="password" show-password maxlength="30" placeholder="留空表示不修改密码" /></el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="yongHuDuiHua = false">取消</el-button>
+        <el-button type="primary" :loading="yongHuBaoCunZhong" @click="baoCunYongHu">保存</el-button>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
@@ -403,7 +654,7 @@ const guanLiYuan = ref(JSON.parse(localStorage.getItem('guanLiYuan') || '{}'))
 const active = ref('shouye')
 const yeMianMing = computed(() => ({
   shouye: '数据概览', yonghu: '用户管理', shangpin: '商品管理', dingdan: '订单管理',
-  fenlei: '分类管理', lunbo: '轮播图管理', gonggao: '公告管理'
+  fenlei: '分类管理', lunbo: '轮播图管理', gonggao: '公告管理', ai: 'AI 接口配置', zhuangxiu: '页面装修'
 }[active.value]))
 
 const meiYe = 10
@@ -470,6 +721,11 @@ const loadLieBiao = async () => {
     res = await jieKou.adminLunBo()
   } else if (active.value === 'gonggao') {
     res = await jieKou.adminGongGao()
+  } else if (active.value === 'ai') {
+    res = await jieKou.adminAiLieBiao()
+    loadAiXingXiang()
+  } else if (active.value === 'zhuangxiu') {
+    jiaZaiZhuangXiu()
   }
   if (res && res.data.chengGong) {
     lieBiao.value = res.data.lieBiao || []
@@ -486,6 +742,32 @@ const qieHuan = (val) => {
   else loadLieBiao()
 }
 const chaZhao = () => { page.value = 0; loadLieBiao() }
+
+// 页面装修
+const zx = ref({
+  huiBiao: '', biaoTi1: '', gaoLiang: '', biaoTi2: '', miaoShu: '',
+  tongJi1BiaoQian: '', tongJi2BiaoQian: '', tongJi3Zhi: '', tongJi3BiaoQian: ''
+})
+const zxBaoCunZhong = ref(false)
+const jiaZaiZhuangXiu = async () => {
+  try {
+    const res = await jieKou.huoQuShouYeZhuangXiu()
+    if (res.data.chengGong) {
+      const { chengGong, ...wen } = res.data
+      zx.value = { ...zx.value, ...wen }
+    }
+  } catch (e) { /* 拉取失败不影响编辑 */ }
+}
+const baoCunZhuangXiu = async () => {
+  zxBaoCunZhong.value = true
+  try {
+    const res = await jieKou.baoCunShouYeZhuangXiu(zx.value)
+    if (res.data.chengGong) ElMessage.success('装修已保存，前台首页已生效')
+    else ElMessage.error(res.data.xinXi || '保存失败')
+  } finally {
+    zxBaoCunZhong.value = false
+  }
+}
 const fanYe = (p) => { page.value = p - 1; loadLieBiao() }
 
 const shanChuYongHu = async (id) => {
@@ -503,6 +785,78 @@ const sheZhiGuanLiYuan = async (row, shi) => {
     if (res.data.chengGong) { ElMessage.success('已更新'); loadLieBiao() }
     else ElMessage.error(res.data.xinXi || '操作失败')
   } catch (e) { /* 取消 */ }
+}
+const chongZhiTouXiang = async (row) => {
+  try {
+    await ElMessageBox.confirm(`确定清除「${row.yongHuMing}」的自定义头像吗？`, '提示', { type: 'warning' })
+    const res = await jieKou.adminChongZhiTouXiang(row.id)
+    if (res.data.chengGong) { ElMessage.success('已重置为默认头像'); loadLieBiao() }
+    else ElMessage.error(res.data.xinXi || '操作失败')
+  } catch (e) { /* 取消 */ }
+}
+// 用户编辑
+const yongHuDuiHua = ref(false)
+const yongHuBaoCunZhong = ref(false)
+const yongHuBiaoDan = ref({ id: null, yongHuMing: '', xingMing: '', shouJi: '', xueHao: '', xinMiMa: '', touXiang: '' })
+const daKaiYongHuBianJi = (row) => {
+  yongHuBiaoDan.value = {
+    id: row.id, yongHuMing: row.yongHuMing,
+    xingMing: row.xingMing || '', shouJi: row.shouJi || '', xueHao: row.xueHao || '', xinMiMa: '',
+    touXiang: row.touXiang || ''
+  }
+  yongHuDuiHua.value = true
+}
+const yongHuTouXiangZhong = ref(false)
+const yongHuTouXiangShuRu = ref(null)
+const xuanZeYongHuTouXiang = () => {
+  if (yongHuTouXiangShuRu.value) {
+    yongHuTouXiangShuRu.value.value = ''
+    yongHuTouXiangShuRu.value.click()
+  }
+}
+const yongHuTouXiangWenJian = async (e) => {
+  const wenJian = e.target.files && e.target.files[0]
+  if (!wenJian) return
+  if (wenJian.size > 8 * 1024 * 1024) { ElMessage.warning('图片不能超过 8MB'); return }
+  const shuJu = new FormData()
+  shuJu.append('file', wenJian, wenJian.name)
+  yongHuTouXiangZhong.value = true
+  try {
+    const res = await jieKou.shangChuanYongHuTouXiang(shuJu)
+    if (res.data.chengGong) {
+      yongHuBiaoDan.value.touXiang = res.data.url
+      ElMessage.success('头像已上传，点保存生效')
+    } else {
+      ElMessage.error(res.data.xinXi || '上传失败')
+    }
+  } catch (err) {
+    ElMessage.error('上传失败，请确认后端已启动且已登录管理员')
+  } finally {
+    yongHuTouXiangZhong.value = false
+  }
+}
+const baoCunYongHu = async () => {
+  if (yongHuBiaoDan.value.xinMiMa && yongHuBiaoDan.value.xinMiMa.length < 6) {
+    ElMessage.warning('新密码至少 6 位')
+    return
+  }
+  yongHuBaoCunZhong.value = true
+  try {
+    const res = await jieKou.adminBianJiYongHu({
+      id: yongHuBiaoDan.value.id,
+      xingMing: yongHuBiaoDan.value.xingMing,
+      shouJi: yongHuBiaoDan.value.shouJi,
+      xueHao: yongHuBiaoDan.value.xueHao,
+      miMa: yongHuBiaoDan.value.xinMiMa || '',
+      touXiang: yongHuBiaoDan.value.touXiang || ''
+    })
+    if (res.data.chengGong) { ElMessage.success('已保存'); yongHuDuiHua.value = false; loadLieBiao() }
+    else ElMessage.error(res.data.xinXi || '保存失败')
+  } catch (e) {
+    ElMessage.error('保存失败，请重试')
+  } finally {
+    yongHuBaoCunZhong.value = false
+  }
 }
 const xiaJia = async (id) => {
   const res = await jieKou.adminXiaJiaShangPin(id)
@@ -846,6 +1200,181 @@ const shanChuGongGao = async (id) => {
   } catch (e) { /* 取消 */ }
 }
 
+// ===== AI 接口配置 =====
+const aiXingXiang = ref({ aiTouXiang: '', aiMingCheng: '小淘', aiJieShao: '' })
+const aiXingXiangZhong = ref(false)
+
+const loadAiXingXiang = async () => {
+  try {
+    const res = await jieKou.aiPeiZhi()
+    if (res.data.chengGong) aiXingXiang.value = res.data
+  } catch (e) { /* 不影响列表展示 */ }
+}
+const shangChuanTouXiang = (option) => {
+  const biaoDan = new FormData()
+  biaoDan.append('file', option.file)
+  return jieKou.shangChuanAiTouXiang(biaoDan).then((res) => {
+    if (res.data.chengGong) {
+      aiXingXiang.value.aiTouXiang = res.data.url
+      ElMessage.success('头像已上传，记得点「保存形象」')
+    } else {
+      ElMessage.error(res.data.xinXi || '上传失败')
+    }
+  }).catch(() => {
+    ElMessage.error('上传失败，请确认后端已启动')
+  })
+}
+const baoCunAiXingXiang = async () => {
+  aiXingXiangZhong.value = true
+  try {
+    const res = await jieKou.adminAiPeiZhi({
+      aiTouXiang: aiXingXiang.value.aiTouXiang,
+      aiMingCheng: aiXingXiang.value.aiMingCheng,
+      aiJieShao: aiXingXiang.value.aiJieShao
+    })
+    if (res.data.chengGong) ElMessage.success('AI 形象已保存')
+    else ElMessage.error(res.data.xinXi || '保存失败')
+  } catch (e) {
+    ElMessage.error('保存失败，请确认后端已启动')
+  } finally {
+    aiXingXiangZhong.value = false
+  }
+}
+
+const fuWuShangLie = [
+  { fuWuShang: 'deepseek', ming: 'DeepSeek', diZhi: 'https://api.deepseek.com/v1', moXing: 'deepseek-chat', shiTu: false },
+  { fuWuShang: 'openai', ming: 'OpenAI', diZhi: 'https://api.openai.com/v1', moXing: 'gpt-4o-mini', shiTu: true },
+  { fuWuShang: 'qwen', ming: '通义千问（阿里云）', diZhi: 'https://dashscope.aliyuncs.com/compatible-mode/v1', moXing: 'qwen-vl-max', shiTu: true },
+  { fuWuShang: 'zhipu', ming: '智谱 GLM', diZhi: 'https://open.bigmodel.cn/api/paas/v4', moXing: 'glm-4v-flash', shiTu: true },
+  { fuWuShang: 'moonshot', ming: 'Moonshot Kimi', diZhi: 'https://api.moonshot.cn/v1', moXing: 'moonshot-v1-8k-vision-preview', shiTu: true },
+  { fuWuShang: 'qita', ming: '其它（OpenAI 兼容）', diZhi: '', moXing: '', shiTu: false }
+]
+const fuWuShangMing = (daiHao) => {
+  const s = fuWuShangLie.find(x => x.fuWuShang === daiHao)
+  return s ? s.ming : (daiHao || '—')
+}
+
+const aiDuiHua = ref(false)
+const aiTiJiaoZhong = ref(false)
+const aiBiaoDan = ref({})
+const ceShiZhong = ref(0)
+
+const daKaiAi = (row) => {
+  aiBiaoDan.value = row
+    ? {
+        id: row.id, mingCheng: row.mingCheng, fuWuShang: row.fuWuShang || 'qita',
+        diZhi: row.diZhi, moXing: row.moXing, miYao: '', shiTu: !!row.shiTu,
+        paiXu: row.paiXu || 0, zhuangTai: row.zhuangTai === 1 ? 1 : 0, beiZhu: row.beiZhu || ''
+      }
+    : {
+        mingCheng: '', fuWuShang: 'deepseek', diZhi: 'https://api.deepseek.com/v1',
+        moXing: 'deepseek-chat', miYao: '', shiTu: false, paiXu: 0, zhuangTai: 0, beiZhu: ''
+      }
+  aiDuiHua.value = true
+}
+const tianMoRen = (daiHao) => {
+  const s = fuWuShangLie.find(x => x.fuWuShang === daiHao)
+  if (!s) return
+  if (!aiBiaoDan.value.diZhi || fuWuShangLie.some(x => x.diZhi === aiBiaoDan.value.diZhi)) aiBiaoDan.value.diZhi = s.diZhi
+  if (!aiBiaoDan.value.moXing || fuWuShangLie.some(x => x.moXing === aiBiaoDan.value.moXing)) aiBiaoDan.value.moXing = s.moXing
+  aiBiaoDan.value.shiTu = s.shiTu
+  if (!aiBiaoDan.value.mingCheng) aiBiaoDan.value.mingCheng = s.ming
+}
+const baoCunAi = async () => {
+  const bd = aiBiaoDan.value
+  if (!bd.diZhi || !bd.diZhi.trim()) { ElMessage.warning('请填写接口地址'); return }
+  if (!bd.moXing || !bd.moXing.trim()) { ElMessage.warning('请填写模型名称'); return }
+  if (!bd.id && (!bd.miYao || !bd.miYao.trim())) { ElMessage.warning('请填写 API 密钥'); return }
+  aiTiJiaoZhong.value = true
+  try {
+    const res = await jieKou.adminAiBaoCun({
+      id: bd.id || null, mingCheng: bd.mingCheng, fuWuShang: bd.fuWuShang,
+      diZhi: bd.diZhi.trim(), moXing: bd.moXing.trim(), miYao: bd.miYao,
+      shiTu: !!bd.shiTu, paiXu: bd.paiXu || 0, zhuangTai: bd.zhuangTai === 1 ? 1 : 0, beiZhu: bd.beiZhu
+    })
+    if (res.data.chengGong) {
+      ElMessage.success(bd.id ? '已保存修改' : '已添加')
+      aiDuiHua.value = false
+      loadLieBiao()
+    } else {
+      ElMessage.error(res.data.xinXi || '保存失败')
+    }
+  } catch (e) {
+    ElMessage.error('保存失败，请确认后端已启动')
+  } finally {
+    aiTiJiaoZhong.value = false
+  }
+}
+
+const piLiangDuiHua = ref(false)
+const piLiangZhong = ref(false)
+const piLiang = ref({ fuWuShang: 'deepseek', diZhi: 'https://api.deepseek.com/v1', moXing: 'deepseek-chat', shiTu: false, neiRong: '' })
+const daKaiPiLiang = () => {
+  piLiang.value = {
+    fuWuShang: 'deepseek', diZhi: 'https://api.deepseek.com/v1',
+    moXing: 'deepseek-chat', shiTu: false, neiRong: ''
+  }
+  piLiangDuiHua.value = true
+}
+const tianPiLiangMoRen = (daiHao) => {
+  const s = fuWuShangLie.find(x => x.fuWuShang === daiHao)
+  if (!s) return
+  piLiang.value.diZhi = s.diZhi
+  piLiang.value.moXing = s.moXing
+  piLiang.value.shiTu = s.shiTu
+}
+const piLiangTianJia = async () => {
+  const pl = piLiang.value
+  if (!pl.diZhi || !pl.diZhi.trim()) { ElMessage.warning('请填写接口地址'); return }
+  if (!pl.moXing || !pl.moXing.trim()) { ElMessage.warning('请填写模型名称'); return }
+  if (!pl.neiRong || !pl.neiRong.trim()) { ElMessage.warning('请粘贴至少一个密钥'); return }
+  piLiangZhong.value = true
+  try {
+    const res = await jieKou.adminAiPiLiang({
+      fuWuShang: pl.fuWuShang, diZhi: pl.diZhi.trim(), moXing: pl.moXing.trim(),
+      shiTu: !!pl.shiTu, neiRong: pl.neiRong
+    })
+    if (res.data.chengGong) {
+      ElMessage.success('已添加 ' + res.data.tianJiaShu + ' 个密钥')
+      piLiangDuiHua.value = false
+      loadLieBiao()
+    } else {
+      ElMessage.error(res.data.xinXi || '添加失败')
+    }
+  } catch (e) {
+    ElMessage.error('添加失败，请确认后端已启动')
+  } finally {
+    piLiangZhong.value = false
+  }
+}
+
+const ceShiAi = async (row) => {
+  ceShiZhong.value = row.id
+  try {
+    const res = await jieKou.adminAiCeShi(row.id)
+    if (res.data.chengGong) ElMessage.success(res.data.xinXi + '（耗时 ' + res.data.haoShi + 'ms）')
+    else ElMessage.error(res.data.xinXi || '连接失败')
+    loadLieBiao()
+  } catch (e) {
+    ElMessage.error('测试失败，请确认后端已启动且网络可访问')
+  } finally {
+    ceShiZhong.value = 0
+  }
+}
+const qieHuanAiZt = async (row) => {
+  const res = await jieKou.adminAiZhuangTai(row.id, row.zhuangTai === 0 ? 1 : 0)
+  if (res.data.chengGong) { ElMessage.success('已更新'); loadLieBiao() }
+  else ElMessage.error(res.data.xinXi || '操作失败')
+}
+const shanChuAi = async (id) => {
+  try {
+    await ElMessageBox.confirm('确定删除该 AI 接口配置吗？', '提示', { type: 'warning' })
+    const res = await jieKou.adminAiShanChu(id)
+    if (res.data.chengGong) { ElMessage.success('已删除'); loadLieBiao() }
+    else ElMessage.error(res.data.xinXi || '删除失败')
+  } catch (e) { /* 取消 */ }
+}
+
 const tuiChu = () => {
   localStorage.removeItem('guanLiYuan')
   luYou.push('/admin/login')
@@ -862,6 +1391,10 @@ onMounted(() => {
 .guanLi { min-height: 100vh; }
 .ceBian { background: #1f2733; color: #fff; }
 .ceBianBiaoTi { font-size: 18px; font-weight: 800; text-align: center; padding: 20px 0; color: #fff; letter-spacing: 1px; }
+.zxBiaoDan { max-width: 620px; padding-top: 6px; }
+.biaoDanTiShi { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-top: 4px; }
+.touXiangBianJi { display: flex; align-items: center; gap: 14px; }
+
 .ceBianCaiDan { background: transparent; border-right: none; }
 .ceBianCaiDan :deep(.el-menu-item) { color: #c5ccd6; }
 .ceBianCaiDan :deep(.el-menu-item.is-active) { background: #2f6bff; color: #fff; border-radius: 10px; margin: 4px 10px; }
@@ -963,6 +1496,94 @@ onMounted(() => {
   cursor: default;
 }
 .chunWenZi { font-size: 13px; color: var(--wenZiSan); }
+
+/* ===== AI 接口配置 ===== */
+.miYaoWen { font-family: Consolas, "Courier New", monospace; font-size: 12.5px; color: var(--wenZiEr); }
+.cuoWuWen {
+  font-size: 11.5px;
+  color: var(--hongSe);
+  margin-top: 4px;
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+/* ===== AI 助手形象卡片 ===== */
+.aiXingXiangKa {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, #f5f8ff 0%, #eef3ff 100%);
+  border: 1px solid #dde7ff;
+  border-radius: var(--yuanJiao);
+  padding: 20px 24px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.xingXiangZuo { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.xingXiangShangChuan { display: inline-block; }
+.xingXiangShangChuan :deep(.el-upload) { border-radius: 26px; outline: none; }
+.xingXiangTu {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  border-radius: 26px;
+  background: linear-gradient(135deg, #2f6bff 0%, #15c5b8 100%);
+  color: #fff;
+  font-size: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(47, 107, 255, .24);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.xingXiangTu:hover { transform: translateY(-3px); box-shadow: 0 18px 34px rgba(47, 107, 255, .34); }
+.xingXiangTu img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.moRenTuBiao { font-size: 44px; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .18)); }
+.xingXiangZheZhao {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, .56);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  opacity: 0;
+  transition: opacity .18s ease;
+  backdrop-filter: blur(2px);
+}
+.xingXiangZheZhao .el-icon { font-size: 20px; }
+.xingXiangTu:hover .xingXiangZheZhao { opacity: 1; }
+.xingXiangBiao {
+  position: absolute;
+  right: -5px;
+  bottom: -5px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ff9a3c 0%, #ff6a3d 100%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 10px rgba(255, 106, 61, .4);
+}
+.xingXiangTiShi { text-align: center; font-size: 12px; color: var(--wenZiSan); line-height: 1.6; }
+.xingXiangYou { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 14px; }
+.xingXiangBiaoTi { display: flex; flex-direction: column; gap: 4px; }
+.xingXiangBiaoTi span { font-size: 15px; font-weight: 700; color: var(--wenZi); }
+.xingXiangBiaoTi em { font-style: normal; font-size: 12px; color: var(--wenZiSan); }
+.xingXiangHang { display: flex; align-items: flex-start; gap: 12px; }
+.xingXiangBiaoQian { width: 90px; flex-shrink: 0; font-size: 14px; font-weight: 600; color: var(--wenZi); padding-top: 7px; }
+.xingXiangCaoZuo { display: flex; justify-content: flex-end; }
 
 /* ===== 商品图片上传区 ===== */
 .shangPinTu { width: 100%; max-width: 300px; display: flex; flex-direction: column; gap: 8px; }

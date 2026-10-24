@@ -68,6 +68,45 @@ public class YongHuKongZhiQi {
         return jieGuo;
     }
 
+    /** 找回密码：校验用户名 + 手机号 + 学号一致后，允许设置新密码 */
+    @PostMapping("/zhaohui")
+    public Map<String, Object> zhaohui(@RequestParam String yongHuMing,
+                                       @RequestParam String shouJi,
+                                       @RequestParam String xueHao,
+                                       @RequestParam String xinMiMa) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        if (yongHuMing == null || yongHuMing.isEmpty()
+                || shouJi == null || shouJi.isEmpty()
+                || xueHao == null || xueHao.isEmpty()
+                || xinMiMa == null || xinMiMa.isEmpty()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "请填写完整：用户名、手机号、学号和新密码");
+            return jieGuo;
+        }
+        YongHu yongHu = yongHuRepository.findByYongHuMing(yongHuMing.trim());
+        if (yongHu == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "该用户名不存在");
+            return jieGuo;
+        }
+        String cunShouJi = yongHu.getShouJi() == null ? "" : yongHu.getShouJi().trim();
+        String cunXueHao = yongHu.getXueHao() == null ? "" : yongHu.getXueHao().trim();
+        if (cunShouJi.isEmpty() || cunXueHao.isEmpty()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "该账号注册时未填写手机号或学号，无法自助找回，请联系管理员重置");
+            return jieGuo;
+        }
+        if (!cunShouJi.equals(shouJi.trim()) || !cunXueHao.equals(xueHao.trim())) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "手机号或学号与账号资料不一致");
+            return jieGuo;
+        }
+        yongHu.setMiMa(Md5.jiaMi(xinMiMa));
+        yongHuRepository.save(yongHu);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
     @PutMapping("/xiugai")
     public Map<String, Object> xiugai(@RequestBody YongHu yongHu) {
         Map<String, Object> jieGuo = new HashMap<>();

@@ -5,13 +5,13 @@
       <div class="heroDots"></div>
       <div class="rongQi yingXiongNei">
         <div class="yingXiongZuo">
-          <span class="heroBadge">校园闲置 · 安心流转</span>
-          <h1>让校园里的<span class="zhuTiWenZiBai">闲置</span><br />流动起来</h1>
-          <p>教材、数码、好物低价流转，学长学姐的宝贝等你来淘。</p>
+          <span class="heroBadge">{{ zx.huiBiao }}</span>
+          <h1>{{ zx.biaoTi1 }}<span class="zhuTiWenZiBai">{{ zx.gaoLiang }}</span><br />{{ zx.biaoTi2 }}</h1>
+          <p>{{ zx.miaoShu }}</p>
           <div class="shuJu">
-            <div><b>{{ zongShu || '—' }}</b><span>在售好物</span></div>
-            <div><b>{{ fenLeiLieBiao.length || '—' }}</b><span>商品分类</span></div>
-            <div><b>24h</b><span>极速交易</span></div>
+            <div><b>{{ zongShu || '—' }}</b><span>{{ zx.tongJi1BiaoQian }}</span></div>
+            <div><b>{{ fenLeiLieBiao.length || '—' }}</b><span>{{ zx.tongJi2BiaoQian }}</span></div>
+            <div><b>{{ zx.tongJi3Zhi }}</b><span>{{ zx.tongJi3BiaoQian }}</span></div>
           </div>
         </div>
         <div class="yingXiongYou">
@@ -266,11 +266,31 @@ watch(() => luYouXin.query.kw, (kw) => {
   jiaZaiShangPin()
 })
 
+// 首页装修文案（管理员可在后台修改）
+const zx = ref({
+  huiBiao: '校园闲置 · 安心流转',
+  biaoTi1: '让校园里的',
+  gaoLiang: '闲置',
+  biaoTi2: '流动起来',
+  miaoShu: '教材、数码、好物低价流转，学长学姐的宝贝等你来淘。',
+  tongJi1BiaoQian: '在售好物',
+  tongJi2BiaoQian: '商品分类',
+  tongJi3Zhi: '24h',
+  tongJi3BiaoQian: '极速交易'
+})
+const jiaZaiZhuangXiu = async () => {
+  try {
+    const res = await jieKou.huoQuShouYeZhuangXiu()
+    if (res.data.chengGong) zx.value = { ...zx.value, ...res.data, chengGong: undefined }
+  } catch (e) { /* 拉取失败用默认文案 */ }
+}
+
 onMounted(() => {
   huoQuYongHu()
   jiaZaiFenLei()
   jiaZaiZhanDian()
   jiaZaiTuiJian()
+  jiaZaiZhuangXiu()
   guanJianCi.value = luYouXin.query.kw || ''
   yiSouSuo.value = guanJianCi.value.trim()
   jiaZaiShangPin()

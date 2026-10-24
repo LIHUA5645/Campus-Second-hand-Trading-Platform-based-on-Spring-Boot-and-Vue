@@ -186,6 +186,62 @@ public class AdminKongZhiQi {
         return jieGuo;
     }
 
+    /** 管理员重置（清除）某用户的自定义头像 */
+    @PostMapping("/yongHu/chongzhiTouXiang")
+    public Map<String, Object> chongZhiTouXiang(@RequestParam Long id) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        YongHu yh = yongHuRepository.findById(id).orElse(null);
+        if (yh == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "用户不存在");
+            return jieGuo;
+        }
+        yh.setTouXiang(null);
+        yongHuRepository.save(yh);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    /** 管理员编辑用户资料（昵称/手机/学号/可选重置密码） */
+    @PostMapping("/yongHu/bianji")
+    public Map<String, Object> bianJiYongHu(@RequestParam Long id,
+                                            @RequestParam(required = false) String xingMing,
+                                            @RequestParam(required = false) String shouJi,
+                                            @RequestParam(required = false) String xueHao,
+                                            @RequestParam(required = false) String miMa,
+                                            @RequestParam(required = false) String touXiang) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        YongHu yh = yongHuRepository.findById(id).orElse(null);
+        if (yh == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "用户不存在");
+            return jieGuo;
+        }
+        if (xingMing == null || xingMing.trim().isEmpty()) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "昵称不能为空");
+            return jieGuo;
+        }
+        yh.setXingMing(xingMing.trim());
+        yh.setShouJi(shouJi == null ? null : shouJi.trim());
+        yh.setXueHao(xueHao == null ? null : xueHao.trim());
+        if (miMa != null && !miMa.trim().isEmpty()) {
+            if (miMa.trim().length() < 6) {
+                jieGuo.put("chengGong", false);
+                jieGuo.put("xinXi", "新密码至少 6 位");
+                return jieGuo;
+            }
+            yh.setMiMa(Md5.jiaMi(miMa.trim()));
+        }
+        if (touXiang != null) {
+            // 传空串表示恢复默认头像，传地址表示设置头像
+            yh.setTouXiang(touXiang.trim().isEmpty() ? null : touXiang.trim());
+        }
+        yongHuRepository.save(yh);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
     // ==================== 商品管理 ====================
 
     /**

@@ -1,10 +1,11 @@
 <!-- 作者：肖沐樑 QQ：3387432690 -->
 <template>
   <div id="app">
-    <DingBu v-if="luYouXin.path !== '/denglu'" />
+    <DingBu v-if="!shiHouTai" />
     <router-view />
     <DaShang />
-    <footer class="yeJiao">
+    <AiRuKou />
+    <footer v-if="!shiHouTai" class="yeJiao">
       <div class="rongQi">
         <p class="shouQuan">版权作者（软著）：添砖 Java QQ：2047419378 ｜ 项目所有者：肖沐樑 QQ：3387432690</p>
         <p>技术交流 / 添砖 Java：QQ 2047419378 ｜ 商务合作：19877380122</p>
@@ -20,11 +21,15 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import DingBu from '@/components/DingBu.vue'
 import DaShang from '@/components/DaShang.vue'
+import AiRuKou from '@/components/AiRuKou.vue'
 
 const luYouXin = useRoute()
+// 后台（含管理员登录页）不显示前台顶栏与页脚
+const shiHouTai = computed(() => luYouXin.path.startsWith('/admin') || luYouXin.path === '/denglu')
 </script>
 
 <style>

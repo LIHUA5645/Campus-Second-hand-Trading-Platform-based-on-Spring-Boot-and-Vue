@@ -15,6 +15,15 @@ http.interceptors.request.use((config) => {
       // 忽略解析异常
     }
   }
+  // 后台管理请求统一携带管理员身份，供后端拦截器鉴权
+  const guanLiYuan = localStorage.getItem('guanLiYuan')
+  if (guanLiYuan) {
+    try {
+      config.headers['GuanLiYuanId'] = JSON.parse(guanLiYuan).id
+    } catch (e) {
+      // 忽略解析异常
+    }
+  }
   return config
 })
 
@@ -23,6 +32,13 @@ export default {
   denglu: (yongHuMing, miMa) => http.post('/yonghu/denglu?yongHuMing=' + yongHuMing + '&miMa=' + miMa),
   geren: (id) => http.get('/yonghu/geren?id=' + id),
   xiugaiYongHu: (data) => http.put('/yonghu/xiugai', data),
+  zhaohuiMiMa: (yongHuMing, shouJi, xueHao, xinMiMa) =>
+    http.post('/yonghu/zhaohui?yongHuMing=' + encodeURIComponent(yongHuMing)
+      + '&shouJi=' + encodeURIComponent(shouJi)
+      + '&xueHao=' + encodeURIComponent(xueHao)
+      + '&xinMiMa=' + encodeURIComponent(xinMiMa)),
+  huoQuShouYeZhuangXiu: () => http.get('/peizhi/shouye'),
+  baoCunShouYeZhuangXiu: (data) => http.post('/admin/peizhi/shouye', data),
 
   fabu: (data) => http.post('/shangpin/fabu', data),
   liebiao: (params) => http.get('/shangpin/liebiao', { params }),
@@ -77,6 +93,14 @@ export default {
 
   // 管理员：权限 / 商品 / 订单
   adminSheZhiGuanLiYuan: (id, shi) => http.post('/admin/yongHu/guanliyuan?id=' + id + '&shi=' + shi),
+  adminBianJiYongHu: (canShu) => http.post('/admin/yongHu/bianji', null, { params: canShu }),
+  shangChuanYongHuTouXiang: (biaoDan) => http.post('/upload/tuxiang?leiBie=touxiang', biaoDan, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id
+    },
+    timeout: 30000
+  }),
   adminShangJiaShangPin: (id) => http.post('/admin/shangPin/shangjia?id=' + id),
   adminShanChuDingDan: (id) => http.post('/admin/dingDan/shanchu?id=' + id),
 
@@ -103,5 +127,52 @@ export default {
       'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id
     },
     timeout: 30000
+  }),
+
+  // AI 智能导购：文字提问 / 识图推荐
+  aiZhuangTai: () => http.get('/ai/zhuangtai'),
+  aiWenDa: (data) => http.post('/ai/wenda', data, { timeout: 120000 }),
+
+  // 管理员：AI 接口配置（可一次添加多个密钥）
+  adminAiLieBiao: () => http.get('/admin/ai/liebiao', {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminAiBaoCun: (data) => http.post('/admin/ai/baocun', data, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminAiPiLiang: (data) => http.post('/admin/ai/piliang', data, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminAiZhuangTai: (id, zhuangTai) => http.post('/admin/ai/zhuangtai?id=' + id + '&zhuangTai=' + zhuangTai, null, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminAiShanChu: (id) => http.post('/admin/ai/shanchu?id=' + id, null, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminAiCeShi: (id) => http.post('/admin/ai/ceshi?id=' + id, null, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id },
+    timeout: 120000
+  }),
+
+  // AI 助手形象（头像 / 名称 / 介绍）
+  aiPeiZhi: () => http.get('/peizhi/ai'),
+  adminAiPeiZhi: (data) => http.post('/admin/peizhi/ai', data, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  shangChuanAiTouXiang: (biaoDan) => http.post('/upload/tuxiang?leiBie=ai', biaoDan, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id
+    },
+    timeout: 30000
+  }),
+
+  // 个人头像（登录用户上传，YongHuId 由拦截器统一携带）
+  shangChuanGeRenTouXiang: (biaoDan) => http.post('/upload/tuxiang?leiBie=geren', biaoDan, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 30000
+  }),
+  adminChongZhiTouXiang: (id) => http.post('/admin/yongHu/chongzhiTouXiang?id=' + id, null, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
   })
 }
