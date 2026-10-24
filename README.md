@@ -16,7 +16,7 @@
 ![Element Plus](https://img.shields.io/badge/Element%20Plus-2.6-409EFF?logo=element&logoColor=white&style=flat-square)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white&style=flat-square)
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white&style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-2ea44f?style=flat-square)
+![License](https://img.shields.io/badge/License-Apache--2.0-blue?style=flat-square)
 ![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)
 [![Star on Gitee](https://gitee.com/zhang-san-zhangshan/esjypt/badge/star.svg?theme=dark)](https://gitee.com/zhang-san-zhangshan/esjypt)
 [![Star on GitHub](https://img.shields.io/github/stars/LIHUA5645/Campus-Second-hand-Trading-Platform-based-on-Spring-Boot-and-Vue?style=social)](https://github.com/LIHUA5645/Campus-Second-hand-Trading-Platform-based-on-Spring-Boot-and-Vue/stargazers)
@@ -214,7 +214,7 @@ npm run dev
 
 ## 📄 开源许可
 
-本项目基于 **MIT License** 开源，可自由用于学习与二次开发。
+本项目基于 **Apache-2.0 License** 开源，可自由用于学习与二次开发。
 
 > 项目所有者：**添砖 Java** QQ：2047419378
 > 版权作者（软著）：**添砖 Java** QQ：2047419378
