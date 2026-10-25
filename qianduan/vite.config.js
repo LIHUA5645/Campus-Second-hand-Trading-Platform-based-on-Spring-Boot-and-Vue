@@ -1,4 +1,4 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'

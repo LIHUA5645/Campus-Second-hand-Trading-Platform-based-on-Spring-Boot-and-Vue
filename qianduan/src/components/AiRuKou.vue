@@ -1,4 +1,4 @@
-<!-- 作者：肖沐樑 QQ：3387432690  完成时间：2026，10，24 -->
+<!-- 作者：肖沐樑 QQ：2047419378  完成时间：2026，10，24 -->
 <template>
   <!-- 悬浮球 -->
   <div v-if="xianShi && !daKai" class="aiFuDong" @click="daKai = true" title="AI 智能导购">

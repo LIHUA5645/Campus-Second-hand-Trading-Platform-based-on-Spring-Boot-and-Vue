@@ -1,7 +1,7 @@
 {
   "name": "ershoupingtai",
   "version": "1.0.0",
-  "author": "肖沐樑 QQ：3387432690（版权所有，用于申请软著）",
+  "author": "肖沐樑 QQ：2047419378（版权所有，用于申请软著）",
   "description": "基于 Spring Boot + Vue 的校园二手交易平台",
   "scripts": {
     "dev": "vite",

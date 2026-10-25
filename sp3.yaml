@@ -1,0 +1,93 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6] [cursor=pointer]:
+        - img "logo" [ref=e7]
+        - generic [ref=e8]: 校园二手
+      - generic [ref=e10]:
+        - generic [ref=e11]:
+          - img [ref=e14]
+          - textbox "搜索教材、数码、生活用品…" [ref=e16]
+        - button "搜索" [ref=e19] [cursor=pointer]:
+          - generic [ref=e20]: 搜索
+      - navigation [ref=e21]:
+        - button "首页" [ref=e22] [cursor=pointer]:
+          - generic [ref=e23]:
+            - img [ref=e25]
+            - text: 首页
+        - button "AI AI 助手" [ref=e27] [cursor=pointer]:
+          - generic [ref=e28]:
+            - img "AI" [ref=e29]
+            - text: AI 助手
+        - button "登录 / 注册" [ref=e30] [cursor=pointer]:
+          - generic [ref=e31]: 登录 / 注册
+  - generic [ref=e33]:
+    - button "返回首页" [ref=e34] [cursor=pointer]:
+      - generic [ref=e35]:
+        - img [ref=e37]
+        - text: 返回首页
+    - generic [ref=e41]:
+      - img "商品图" [ref=e43]
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - heading "粉色小屏手机 女生自用 拍照好看" [level=1] [ref=e46]
+          - generic [ref=e114]: 在售
+        - generic [ref=e47]: ￥799
+        - paragraph [ref=e48]: 女生自用一手机器，外观几乎没有使用痕迹，配了粉色保护壳一起送。屏幕比较小，单手打字很舒服，适合当备用机。
+        - generic [ref=e49]:
+          - generic [ref=e50]: 系
+          - generic [ref=e51]:
+            - generic [ref=e52]: 系统管理员
+            - generic [ref=e53]: 校园卖家 · 诚信交易
+        - generic [ref=e54]:
+          - button "登录后购买" [ref=e55] [cursor=pointer]:
+            - generic [ref=e56]:
+              - img [ref=e58]
+              - text: 登录后购买
+          - button "联系卖家" [ref=e60] [cursor=pointer]:
+            - generic [ref=e61]:
+              - img [ref=e63]
+              - text: 联系卖家
+    - generic [ref=e66]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - img [ref=e71]
+          - text: 看了又看
+        - generic [ref=e73]: 协同过滤算出来的相似闲置
+      - generic [ref=e75]:
+        - generic [ref=e76] [cursor=pointer]:
+          - img "曲面屏安卓手机 蓝紫渐变 无磕碰" [ref=e78]
+          - generic [ref=e79]: 曲面屏安卓手机 蓝紫渐变 无磕碰
+          - generic [ref=e80]: ￥8909
+        - generic [ref=e81] [cursor=pointer]:
+          - img "黑色旗舰机 后置三摄 256G 大内存" [ref=e83]
+          - generic [ref=e84]: 黑色旗舰机 后置三摄 256G 大内存
+          - generic [ref=e85]: ￥1199
+        - generic [ref=e86] [cursor=pointer]:
+          - img "折叠屏手机 展开几乎无痕 12+256" [ref=e88]
+          - generic [ref=e89]: 折叠屏手机 展开几乎无痕 12+256
+          - generic [ref=e90]: ￥2999
+        - generic [ref=e91] [cursor=pointer]:
+          - img "旧手机四台打包 金/银/蓝/黑" [ref=e93]
+          - generic [ref=e94]: 旧手机四台打包 金/银/蓝/黑
+          - generic [ref=e95]: ￥199
+        - generic [ref=e96] [cursor=pointer]:
+          - img "黑色全面屏手机 64G 全原装无拆修" [ref=e98]
+          - generic [ref=e99]: 黑色全面屏手机 64G 全原装无拆修
+          - generic [ref=e100]: ￥1099
+  - generic [ref=e101] [cursor=pointer]: 打赏❤
+  - generic "AI 智能导购" [ref=e102] [cursor=pointer]:
+    - img "AI" [ref=e104]
+    - generic [ref=e105]: AI 帮我挑
+  - contentinfo [ref=e106]:
+    - generic [ref=e107]:
+      - paragraph [ref=e108]: 版权作者（软著）：肖沐樑 QQ：2047419378 ｜ 项目所有者：肖沐樑 QQ：2047419378
+      - paragraph [ref=e109]: 技术交流 / 肖沐樑：QQ 2047419378 ｜ 商务合作：19877380122
+      - paragraph [ref=e110]:
+        - text: 如果觉得不错，欢迎
+        - link "Gitee Star ⭐" [ref=e111] [cursor=pointer]:
+          - /url: https://gitee.com/zhang-san-zhangshan/esjypt
+        - text: ｜
+        - link "GitHub Star ⭐" [ref=e112] [cursor=pointer]:
+          - /url: https://github.com/LIHUA5645/Campus-Second-hand-Trading-Platform-based-on-Spring-Boot-and-Vue
+        - text: 支持作者

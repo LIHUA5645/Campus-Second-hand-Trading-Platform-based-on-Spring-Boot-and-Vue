@@ -1,12 +1,12 @@
-<!-- 作者：肖沐樑 QQ：3387432690 -->
+<!-- 作者：肖沐樑 QQ：2047419378 -->
 <template>
   <div class="daShang">
     <div class="xuanFu" @click="zhanShi = !zhanShi">打赏❤</div>
     <div v-if="zhanShi" class="tanChuang">
       <h3>欢迎打赏作者</h3>
-      <p>技术交流 / 添砖 Java：QQ 2047419378</p>
+      <p>技术交流 / 肖沐樑：QQ 2047419378</p>
       <p>商务合作：19877380122</p>
-      <p>项目所有者：肖沐樑 QQ：3387432690</p>
+      <p>项目所有者：肖沐樑 QQ：2047419378</p>
       <p>满意请给
         <a href="https://github.com/LIHUA5645/Campus-Second-hand-Trading-Platform-based-on-Spring-Boot-and-Vue" target="_blank" rel="noopener">GitHub Star ⭐</a> /
         <a href="https://gitee.com/zhang-san-zhangshan/esjypt" target="_blank" rel="noopener">Gitee Star ⭐</a>

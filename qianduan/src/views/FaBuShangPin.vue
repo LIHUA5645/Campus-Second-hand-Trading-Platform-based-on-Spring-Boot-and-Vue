@@ -1,4 +1,4 @@
-<!-- 作者：肖沐樑 QQ：3387432690 -->
+<!-- 作者：肖沐樑 QQ：2047419378 -->
 <template>
   <div class="faBu">
     <div class="rongQi">
@@ -28,13 +28,24 @@
             </el-col>
             <el-col :span="10">
               <el-form-item label="商品图片">
-                <div class="tuPianYuLan">
-                  <img v-if="biaoDan.tuPian" :src="biaoDan.tuPian" alt="预览" />
-                  <div v-else class="tuPianZhanWei"><el-icon><Picture /></el-icon><span>填写下方链接预览</span></div>
+                <div class="tuPianShangChuan">
+                  <div class="tuPianYuLan" :class="{ youTu: biaoDan.tuPian }" v-loading="shangChuanZhong" @click="xuanTu">
+                    <img v-if="biaoDan.tuPian" :src="biaoDan.tuPian" alt="预览" />
+                    <div v-else class="tuPianZhanWei">
+                      <el-icon><Plus /></el-icon>
+                      <span>点击上传商品图</span>
+                      <em>支持 jpg / png / webp，最大 8MB</em>
+                    </div>
+                    <div v-if="biaoDan.tuPian && !shangChuanZhong" class="tuPianZheZhao">
+                      <el-button size="small" round @click.stop="xuanTu"><el-icon><RefreshRight /></el-icon> 更换</el-button>
+                      <el-button size="small" round plain type="danger" @click.stop="qingChuTu">移除</el-button>
+                    </div>
+                  </div>
+                  <input ref="wenJianRef" type="file" accept="image/*" class="yinCangWenJian" @change="wenJianBianHua" />
                 </div>
               </el-form-item>
               <el-form-item label="图片链接">
-                <el-input v-model="biaoDan.tuPian" placeholder="商品图片网络地址（可选）" />
+                <el-input v-model="biaoDan.tuPian" placeholder="也可以粘贴网络图片地址" />
               </el-form-item>
             </el-col>
           </el-row>
@@ -56,10 +67,53 @@ import { ElMessage } from 'element-plus'
 const luYou = useRouter()
 const fenLeiLieBiao = ref([])
 const biaoDan = ref({ biaoTi: '', fenLeiId: null, jiaGe: 0, tuPian: '', miaoShu: '' })
+const wenJianRef = ref(null)
+const shangChuanZhong = ref(false)
 
 const yongHu = () => {
   const y = localStorage.getItem('yongHu')
   return y ? JSON.parse(y) : null
+}
+
+// 点击预览框选择本地图片
+const xuanTu = () => {
+  if (shangChuanZhong.value) return
+  if (wenJianRef.value) wenJianRef.value.click()
+}
+
+const qingChuTu = () => {
+  biaoDan.value.tuPian = ''
+}
+
+// 选中文件后直接上传，成功后把地址写回表单
+const wenJianBianHua = async (shiJian) => {
+  const wenJian = shiJian.target.files && shiJian.target.files[0]
+  shiJian.target.value = ''
+  if (!wenJian) return
+  if (!/^image\//.test(wenJian.type)) {
+    ElMessage.warning('请选择图片文件')
+    return
+  }
+  if (wenJian.size > 8 * 1024 * 1024) {
+    ElMessage.warning('图片不能超过 8MB')
+    return
+  }
+  const biaoDanShu = new FormData()
+  biaoDanShu.append('file', wenJian)
+  shangChuanZhong.value = true
+  try {
+    const res = await jieKou.shangChuanShangPinTuYongHu(biaoDanShu)
+    if (res.data.chengGong) {
+      biaoDan.value.tuPian = res.data.url
+      ElMessage.success('图片上传成功')
+    } else {
+      ElMessage.error(res.data.xinXi || '上传失败')
+    }
+  } catch (e) {
+    ElMessage.error('上传失败，请检查网络后重试')
+  } finally {
+    shangChuanZhong.value = false
+  }
 }
 
 onMounted(() => {
@@ -86,9 +140,36 @@ const tiJiao = async () => {
 .biaoTiHang h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 22px; color: var(--wenZi); }
 .biaoTiHang h2 .el-icon { color: var(--zhuSe); }
 .jianJie { color: var(--wenZiSan); font-size: 13px; }
-.tuPianYuLan { width: 100%; height: 200px; border-radius: 12px; overflow: hidden; border: 1px dashed var(--bianKuang); }
-.tuPianYuLan img { width: 100%; height: 100%; object-fit: cover; }
-.tuPianYuLan .tuPianZhanWei { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--wenZiSan); background: var(--beiJing); }
-.tuPianYuLan .tuPianZhanWei .el-icon { font-size: 40px; }
+.tuPianShangChuan { width: 100%; }
+.yinCangWenJian { display: none; }
+.tuPianYuLan {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px dashed var(--bianKuang);
+  cursor: pointer;
+  background: var(--beiJing);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.tuPianYuLan:hover { border-color: var(--zhuSe); box-shadow: 0 6px 18px rgba(47, 107, 255, .12); }
+.tuPianYuLan.youTu { border-style: solid; }
+.tuPianYuLan img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.tuPianYuLan .tuPianZhanWei { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; color: var(--wenZiSan); }
+.tuPianYuLan .tuPianZhanWei .el-icon { font-size: 34px; color: #9bb4ff; }
+.tuPianYuLan .tuPianZhanWei em { font-style: normal; font-size: 11.5px; color: var(--wenZiSan); }
+.tuPianZheZhao {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(15, 23, 42, .45);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.tuPianYuLan:hover .tuPianZheZhao { opacity: 1; }
 .tiJiao { padding: 12px 40px; }
 </style>

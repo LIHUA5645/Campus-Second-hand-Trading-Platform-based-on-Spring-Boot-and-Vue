@@ -1,4 +1,4 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 package com.ershoujiaoyi.controller;
 
 import com.ershoujiaoyi.entity.YongHu;
@@ -41,14 +41,18 @@ public class WenJianKongZhiQi {
                                                  @RequestHeader(value = "GuanLiYuanId", required = false) Long guanLiYuanId,
                                                  @RequestHeader(value = "YongHuId", required = false) Long yongHuId) {
         Map<String, Object> jieGuo = new HashMap<>();
-        // geren（个人头像）类允许登录用户上传；其余类别仍仅限管理员
-        boolean shiGerentTu = "geren".equals(leiBie);
-        if (shiGerentTu) {
+        // geren（个人头像）、shangpin（商品图）允许登录用户上传；其余类别仍仅限管理员
+        boolean shiYongHuLeiBie = "geren".equals(leiBie) || "shangpin".equals(leiBie);
+        if (shiYongHuLeiBie) {
             YongHu yongHu = yongHuId == null ? null : yongHuRepository.findById(yongHuId).orElse(null);
             if (yongHu == null) {
-                jieGuo.put("chengGong", false);
-                jieGuo.put("xinXi", "请先登录后再上传头像");
-                return jieGuo;
+                // 后台代发商品只带 GuanLiYuanId，这里兜底放行管理员
+                YongHu guanLiYuan = guanLiYuanId == null ? null : yongHuRepository.findById(guanLiYuanId).orElse(null);
+                if (guanLiYuan == null || guanLiYuan.getGuanLiYuan() == null || !guanLiYuan.getGuanLiYuan()) {
+                    jieGuo.put("chengGong", false);
+                    jieGuo.put("xinXi", "请先登录后再上传图片");
+                    return jieGuo;
+                }
             }
         } else {
             YongHu guanLiYuan = guanLiYuanId == null ? null : yongHuRepository.findById(guanLiYuanId).orElse(null);

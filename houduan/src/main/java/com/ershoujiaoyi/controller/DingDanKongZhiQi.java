@@ -1,4 +1,4 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 package com.ershoujiaoyi.controller;
 
 import com.ershoujiaoyi.entity.DingDan;
@@ -7,6 +7,7 @@ import com.ershoujiaoyi.entity.YongHu;
 import com.ershoujiaoyi.repository.DingDanRepository;
 import com.ershoujiaoyi.repository.ShangPinRepository;
 import com.ershoujiaoyi.repository.YongHuRepository;
+import com.ershoujiaoyi.service.QianBaoFuWu;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,8 @@ public class DingDanKongZhiQi {
     private ShangPinRepository shangPinRepository;
     @Autowired
     private YongHuRepository yongHuRepository;
+    @Autowired
+    private QianBaoFuWu qianBaoFuWu;
 
     @PostMapping("/xiadan")
     public Map<String, Object> xiadan(@RequestBody DingDan dingDan) {
@@ -55,6 +58,8 @@ public class DingDanKongZhiQi {
         dingDan.setJiaGe(shangPin.getJiaGe());
         dingDan.setTuPian(shangPin.getTuPian());
         dingDan.setZhuangTai(0);
+        // 下单后进入待付款，付款成功才会流转到真正的「待发货」
+        dingDan.setZhiFuZhuangTai(0);
         dingDan.setXiaDanShiJian(new Date());
         if (dingDan.getMaiJiaMing() == null && dingDan.getMaiJiaId() != null) {
             YongHu maiJia = yongHuRepository.findById(dingDan.getMaiJiaId()).orElse(null);
@@ -90,6 +95,19 @@ public class DingDanKongZhiQi {
         return jieGuo;
     }
 
+    /** 单个订单详情，收银台页面用 */
+    @GetMapping("/xiangqing")
+    public Map<String, Object> xiangqing(@RequestParam Long id) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        DingDan dingDan = dingDanRepository.findById(id).orElse(null);
+        jieGuo.put("chengGong", dingDan != null);
+        jieGuo.put("dingDan", dingDan);
+        if (dingDan == null) {
+            jieGuo.put("xinXi", "订单不存在");
+        }
+        return jieGuo;
+    }
+
     @PutMapping("/zhuangtai")
     public Map<String, Object> zhuangtai(@RequestParam Long id, @RequestParam Integer zhuangTai) {
         Map<String, Object> jieGuo = new HashMap<>();
@@ -99,8 +117,20 @@ public class DingDanKongZhiQi {
             jieGuo.put("xinXi", "订单不存在");
             return jieGuo;
         }
+        // 线上支付未完成时不允许发货（货到付款为线下收款，不受限制）
+        boolean weiFuKuan = dingDan.getZhiFuZhuangTai() != null && dingDan.getZhiFuZhuangTai() == 0;
+        boolean huoDaoFuKuan = "huodao".equals(dingDan.getZhiFuFangShi());
+        if (zhuangTai == 1 && weiFuKuan && !huoDaoFuKuan) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "买家还未付款，请先提醒买家完成支付");
+            return jieGuo;
+        }
         dingDan.setZhuangTai(zhuangTai);
         dingDanRepository.save(dingDan);
+        // 买家确认收货（订单完成）后，把货款记入卖家钱包余额，卖家可再申请提现
+        if (zhuangTai == 2) {
+            qianBaoFuWu.ruZhang(dingDan);
+        }
         if (zhuangTai == 3 && dingDan.getShangPinId() != null) {
             shangPinRepository.findById(dingDan.getShangPinId()).ifPresent(s -> {
                 s.setZhuangTai(0);

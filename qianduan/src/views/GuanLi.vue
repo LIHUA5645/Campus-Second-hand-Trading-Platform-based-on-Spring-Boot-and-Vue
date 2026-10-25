@@ -7,7 +7,22 @@
         <el-menu-item index="yonghu"><el-icon><User /></el-icon><span>用户管理</span></el-menu-item>
         <el-menu-item index="shangpin"><el-icon><Goods /></el-icon><span>商品管理</span></el-menu-item>
         <el-menu-item index="dingdan"><el-icon><Tickets /></el-icon><span>订单管理</span></el-menu-item>
+        <el-menu-item index="xiaoxi">
+          <el-icon><ChatDotRound /></el-icon>
+          <template #title>
+            <span>私信管理</span>
+            <el-badge v-if="xiaoXiWeiDu" :value="xiaoXiWeiDu" :max="99" class="caiDanDian" />
+          </template>
+        </el-menu-item>
         <el-menu-item index="fenlei"><el-icon><Menu /></el-icon><span>分类管理</span></el-menu-item>
+        <el-menu-item index="zhifu"><el-icon><Wallet /></el-icon><span>支付配置</span></el-menu-item>
+        <el-menu-item index="tixian">
+          <el-icon><Money /></el-icon>
+          <template #title>
+            <span>提现管理</span>
+            <el-badge v-if="daiShenHeShu" :value="daiShenHeShu" :max="99" class="caiDanDian" />
+          </template>
+        </el-menu-item>
         <el-menu-item index="lunbo"><el-icon><Picture /></el-icon><span>轮播图管理</span></el-menu-item>
         <el-menu-item index="gonggao"><el-icon><Bell /></el-icon><span>公告管理</span></el-menu-item>
         <el-menu-item index="ai"><el-icon><MagicStick /></el-icon><span>AI 接口配置</span></el-menu-item>
@@ -109,8 +124,11 @@
         <div v-else-if="active === 'shangpin'">
           <div class="gongJu">
             <el-button type="primary" plain @click="daKaiShangPin()"><el-icon><Plus /></el-icon> 发布商品</el-button>
-            <el-input v-model="keyword" placeholder="搜索商品标题" clearable style="width: 240px" @keyup.enter="chaZhao" @clear="chaZhao">
+            <el-input v-model="keyword" placeholder="搜索商品标题" clearable style="width: 220px" @keyup.enter="chaZhao" @clear="chaZhao">
               <template #prefix><el-icon><Search /></el-icon></template>
+            </el-input>
+            <el-input v-model="faBuZhe" placeholder="按发布者筛选（如：测试一号）" clearable style="width: 220px" @keyup.enter="chaZhao" @clear="chaZhao">
+              <template #prefix><el-icon><User /></el-icon></template>
             </el-input>
             <el-button type="primary" @click="chaZhao">查询</el-button>
           </div>
@@ -375,6 +393,202 @@
           <div v-if="!lieBiao.length" class="kongWen">还没有配置任何 AI 密钥，点上方「批量添加多个」可以一次粘贴多行密钥。</div>
         </div>
 
+        <!-- 私信管理 -->
+        <div v-else-if="active === 'xiaoxi'">
+          <div class="quKuai">
+            <h3>买家私信</h3>
+            <span class="tiShi">这里是你作为商品发布者收到的私信，选中会话即可直接回复，无需再登录前台</span>
+          </div>
+          <div class="xiaoxiBu">
+            <div class="xiaoxiLie">
+              <div v-if="!xiaoXiHuiHua.length" class="kongWen">还没有收到任何私信</div>
+              <div
+                v-for="h in xiaoXiHuiHua"
+                :key="huiHuaJian(h)"
+                class="xiaoxiXiang"
+                :class="{ huoYue: xiaoXiDangQian && huiHuaJian(xiaoXiDangQian) === huiHuaJian(h) }"
+                @click="daKaiHuiHua(h)"
+              >
+                <div class="xxTou">
+                  <img v-if="h.duiFangTouXiang" :src="h.duiFangTouXiang" alt="头像" />
+                  <span v-else>{{ (h.duiFangMing || '匿').slice(0, 1) }}</span>
+                  <em v-if="h.weiDuShu" class="xxDian">{{ h.weiDuShu > 99 ? '99+' : h.weiDuShu }}</em>
+                </div>
+                <div class="xxXin">
+                  <div class="xxHang1">
+                    <b>{{ h.duiFangMing || '匿名用户' }}</b>
+                    <span class="xxShiJian">{{ xiaoXiShiJian(h.zuiHouShiJian) }}</span>
+                  </div>
+                  <div class="xxHang2">{{ h.zuiHouShiWo ? '我：' : '' }}{{ h.zuiHouNeiRong }}</div>
+                  <div v-if="h.shangPinBiaoTi" class="xxHang3">
+                    <img v-if="h.shangPinTuPian" :src="h.shangPinTuPian" alt="商品" class="xxHang3Tu" />
+                    <el-icon v-else><Goods /></el-icon>
+                    <span class="xxHang3Wen">{{ h.shangPinBiaoTi }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="xiaoxiQu">
+              <div v-if="!xiaoXiDangQian" class="kongWen">选择左侧会话查看并回复</div>
+              <template v-else>
+                <div class="xxShou">
+                  <span class="xxShouMing">与 <b>{{ xiaoXiDangQian.duiFangMing || '匿名用户' }}</b> 的会话</span>
+                  <div
+                    v-if="xiaoXiDangQian.shangPinId"
+                    class="xxKa"
+                    @click="kanShangPin(xiaoXiDangQian.shangPinId)"
+                  >
+                    <div class="xxKaTu">
+                      <img v-if="xiaoXiDangQian.shangPinTuPian" :src="xiaoXiDangQian.shangPinTuPian" alt="商品图" />
+                      <div v-else class="xxKaZhan"><el-icon><Picture /></el-icon></div>
+                    </div>
+                    <div class="xxKaWen">
+                      <div class="xxKaTi">{{ xiaoXiDangQian.shangPinBiaoTi || '关联商品' }}</div>
+                      <div class="xxKaJia">
+                        <span class="xxKaJiaGe">￥{{ xiaoXiDangQian.shangPinJiaGe ?? '—' }}</span>
+                        <span class="xxKaFu">查看商品详情</span>
+                      </div>
+                    </div>
+                    <el-icon class="xxKaJian"><TopRight /></el-icon>
+                  </div>
+                </div>
+                <div ref="xxGunRef" class="xxGun">
+                  <div v-if="!xiaoXiLie.length" class="kongWen">还没有聊天记录</div>
+                  <div
+                    v-for="x in xiaoXiLie"
+                    :key="x.id"
+                    class="xxPao"
+                    :class="{ wo: x.faSongRenId === guanLiYuan.id }"
+                  >
+                    <div class="xxNei">{{ x.neiRong }}</div>
+                    <div class="xxShi">{{ xiaoXiShiJian(x.faSongShiJian) }}</div>
+                  </div>
+                </div>
+                <div class="xxShuRu">
+                  <el-input
+                    v-model="xiaoXiNeiRong"
+                    type="textarea"
+                    :rows="2"
+                    resize="none"
+                    maxlength="1000"
+                    show-word-limit
+                    placeholder="输入回复内容，Enter 发送，Shift + Enter 换行"
+                    @keydown.enter.exact.prevent="huiFu"
+                  />
+                  <div class="xxShuRuHang">
+                    <span class="tiShi">回复会以你（发布者）的身份发送给买家</span>
+                    <el-button type="primary" :loading="xiaoXiFaSongZhong" @click="huiFu">
+                      <el-icon><Promotion /></el-icon> 发送回复
+                    </el-button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+
+        <!-- 支付配置 -->
+        <div v-else-if="active === 'zhifu'">
+          <div class="quKuai">
+            <h3>支付宝支付配置</h3>
+            <span class="tiShi">填好开放平台参数，买家下单就能跳转支付宝付款；沙箱环境不会真实扣款，可放心联调</span>
+          </div>
+          <el-form label-width="140px" class="zxBiaoDan">
+            <el-form-item label="配置名称">
+              <el-input v-model="zhiFu.mingCheng" placeholder="如：支付宝沙箱" />
+            </el-form-item>
+            <el-form-item label="应用 APPID">
+              <el-input v-model="zhiFu.appId" placeholder="开放平台应用详情页的 APPID" />
+            </el-form-item>
+            <el-form-item label="应用私钥">
+              <el-input v-model="zhiFu.yingYongSiYao" type="textarea" :rows="3" placeholder="密钥工具生成的 PKCS8 应用私钥（RSA2）" />
+              <div class="biaoDanTiShi">保存后加密入库并打码展示；留空表示不修改原值</div>
+            </el-form-item>
+            <el-form-item label="支付宝公钥">
+              <el-input v-model="zhiFu.zhiFuBaoGongYao" type="textarea" :rows="3" placeholder="用于校验支付宝异步通知签名" />
+            </el-form-item>
+            <el-form-item label="收款账号">
+              <el-input v-model="zhiFu.shouKuanZhangHao" placeholder="seller_id，留空则用 APPID 对应账号收款" />
+            </el-form-item>
+            <el-form-item label="运行环境">
+              <el-switch v-model="zhiFu.shaXiang" active-text="沙箱" inactive-text="正式" />
+              <div class="biaoDanTiShi">沙箱使用 openapi-sandbox.dl.alipaydev.com 网关，正式环境会真实扣款</div>
+            </el-form-item>
+            <el-form-item label="启用支付">
+              <el-switch :model-value="zhiFu.zhuangTai === 1" active-text="启用" inactive-text="停用" @change="qieHuanZhiFuZt" />
+            </el-form-item>
+            <el-form-item label="同步返回地址">
+              <el-input v-model="zhiFu.fanHuiDiZhi" placeholder="留空则由前端自动传入，如 http://localhost:5173/zhifu/jieguo" />
+            </el-form-item>
+            <el-form-item label="异步通知地址">
+              <el-input v-model="zhiFu.tongZhiDiZhi" placeholder="需公网可访问；本地开发留空，靠主动查询确认" />
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" :loading="zhiFuBaoCunZhong" @click="baoCunZhiFu">保存配置</el-button>
+            </el-form-item>
+          </el-form>
+          <el-alert
+            type="info"
+            :closable="false"
+            show-icon
+            class="zhiFuShuoMing"
+            title="沙箱参数怎么拿"
+            description="登录支付宝开放平台 → 控制台 → 沙箱环境，用「密钥工具」生成 RSA2 密钥：应用私钥填到上面，支付宝公钥也填到上面。沙箱 APPID 在沙箱应用卡片里复制，买家付款用沙箱买家账号登录即可。"
+          />
+        </div>
+
+        <!-- 提现管理 -->
+        <div v-else-if="active === 'tixian'">
+          <div class="quKuai">
+            <h3>提现管理</h3>
+            <span class="tiShi">买家货款先由平台代收，确认收货后计入卖家余额；卖家提交提现申请，你线下打款后点「已打款」</span>
+          </div>
+          <div class="gongJu">
+            <el-select v-model="tiXianZt" placeholder="全部状态" clearable style="width: 160px" @change="jiaZaiTiXian">
+              <el-option label="待审核" :value="0" />
+              <el-option label="已打款" :value="1" />
+              <el-option label="已驳回" :value="2" />
+            </el-select>
+            <el-input v-model="tiXianKw" placeholder="搜索用户 / 账号 / 姓名" clearable style="width: 230px" @keyup.enter="jiaZaiTiXian" @clear="jiaZaiTiXian" />
+            <el-button type="primary" @click="jiaZaiTiXian">查询</el-button>
+            <span class="tiShi">待审核 <b class="daiShenHe">{{ daiShenHeShu }}</b> 笔</span>
+          </div>
+          <el-table :data="tiXianLieBiao" border stripe v-if="tiXianLieBiao.length">
+            <el-table-column prop="id" label="ID" width="70" />
+            <el-table-column prop="yongHuMing" label="申请人" width="120" />
+            <el-table-column label="金额" width="110">
+              <template #default="{ row }"><span class="jiaGe">￥{{ Number(row.jinE || 0).toFixed(2) }}</span></template>
+            </el-table-column>
+            <el-table-column label="收款方式" width="100">
+              <template #default="{ row }">{{ row.fangShi === 'weixin' ? '微信' : (row.fangShi === 'yinhang' ? '银行卡' : '支付宝') }}</template>
+            </el-table-column>
+            <el-table-column prop="zhangHao" label="收款账号" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="xingMing" label="收款人" width="100" />
+            <el-table-column prop="shouJi" label="联系电话" width="130" />
+            <el-table-column label="状态" width="100">
+              <template #default="{ row }">
+                <el-tag v-if="row.zhuangTai === 0" type="warning" effect="light" round>待审核</el-tag>
+                <el-tag v-else-if="row.zhuangTai === 1" type="success" effect="light" round>已打款</el-tag>
+                <el-tag v-else type="danger" effect="light" round>已驳回</el-tag>
+              </template>
+            </el-table-column>
+            <el-table-column prop="beiZhu" label="备注" min-width="160" show-overflow-tooltip />
+            <el-table-column label="申请时间" width="150">
+              <template #default="{ row }">{{ shiJianWenBen(row.shenQingShiJian) }}</template>
+            </el-table-column>
+            <el-table-column label="操作" width="260">
+              <template #default="{ row }">
+                <template v-if="row.zhuangTai === 0">
+                  <el-button size="small" type="success" plain round @click="chuLiTiXian(row, 'tongguo')">已打款</el-button>
+                  <el-button size="small" type="danger" plain round @click="chuLiTiXian(row, 'bohui')">驳回</el-button>
+                </template>
+                <el-button v-else size="small" type="danger" plain round @click="shanChuTiXian(row)">删除</el-button>
+              </template>
+            </el-table-column>
+          </el-table>
+          <el-empty v-else description="暂无提现申请" />
+        </div>
         <!-- 页面装修 -->
         <div v-if="active === 'zhuangxiu'">
           <div class="quKuai"><h3>首页装修</h3><span class="tiShi">修改首页顶部宣传区的文案，保存后前台立即生效；留空则恢复默认文案</span></div>
@@ -658,24 +872,26 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import jieKou from '@/api/jieKou'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const luYou = useRouter()
+const luYouXin = useRoute()
 const guanLiYuan = ref(JSON.parse(localStorage.getItem('guanLiYuan') || '{}'))
 
 const active = ref('shouye')
 const yeMianMing = computed(() => ({
-  shouye: '数据概览', yonghu: '用户管理', shangpin: '商品管理', dingdan: '订单管理',
-  fenlei: '分类管理', lunbo: '轮播图管理', gonggao: '公告管理', ai: 'AI 接口配置', zhuangxiu: '页面装修'
+  shouye: '数据概览', yonghu: '用户管理', shangpin: '商品管理', dingdan: '订单管理', xiaoxi: '私信管理',
+  fenlei: '分类管理', zhifu: '支付配置', tixian: '提现管理', lunbo: '轮播图管理', gonggao: '公告管理', ai: 'AI 接口配置', zhuangxiu: '页面装修'
 }[active.value]))
 
 const meiYe = 10
 const page = ref(0)
 const total = ref(0)
 const keyword = ref('')
+const faBuZhe = ref('')
 const dingDanZt = ref(null)
 const lieBiao = ref([])
 const fenLeiLie = ref([])
@@ -727,7 +943,7 @@ const loadLieBiao = async () => {
   if (active.value === 'yonghu') {
     res = await jieKou.adminYongHu({ yeMa: page.value, meiYe, guanJianCi: keyword.value })
   } else if (active.value === 'shangpin') {
-    res = await jieKou.adminShangPin({ yeMa: page.value, meiYe, guanJianCi: keyword.value })
+    res = await jieKou.adminShangPin({ yeMa: page.value, meiYe, guanJianCi: keyword.value, faBuZhe: faBuZhe.value })
   } else if (active.value === 'dingdan') {
     res = await jieKou.adminDingDan({ yeMa: page.value, meiYe, zhuangTai: dingDanZt.value })
   } else if (active.value === 'fenlei') {
@@ -752,8 +968,12 @@ const qieHuan = (val) => {
   active.value = val
   page.value = 0
   keyword.value = ''
+  faBuZhe.value = ''
   dingDanZt.value = null
   if (val === 'shouye') loadTongJi()
+  else if (val === 'xiaoxi') jiaZaiXiaoXi()
+  else if (val === 'zhifu') jiaZaiZhiFu()
+  else if (val === 'tixian') jiaZaiTiXian()
   else loadLieBiao()
 }
 const chaZhao = () => { page.value = 0; loadLieBiao() }
@@ -1419,10 +1639,256 @@ const tuiChu = () => {
   luYou.push('/admin/login')
 }
 
+// ===== 支付配置：支付宝沙箱 / 正式参数 =====
+const zhiFu = ref({
+  mingCheng: '', appId: '', yingYongSiYao: '', zhiFuBaoGongYao: '',
+  shouKuanZhangHao: '', shaXiang: true, zhuangTai: 1, fanHuiDiZhi: '', tongZhiDiZhi: ''
+})
+const zhiFuBaoCunZhong = ref(false)
+
+const jiaZaiZhiFu = async () => {
+  try {
+    const res = await jieKou.adminZhiFu()
+    if (res.data.chengGong && res.data.yiPeiZhi) {
+      zhiFu.value = {
+        id: res.data.id,
+        mingCheng: res.data.mingCheng || '',
+        appId: res.data.appId || '',
+        yingYongSiYao: res.data.yingYongSiYao || '',
+        zhiFuBaoGongYao: res.data.zhiFuBaoGongYao || '',
+        shouKuanZhangHao: res.data.shouKuanZhangHao || '',
+        shaXiang: res.data.shaXiang !== false,
+        zhuangTai: res.data.zhuangTai == null ? 1 : res.data.zhuangTai,
+        fanHuiDiZhi: res.data.fanHuiDiZhi || '',
+        tongZhiDiZhi: res.data.tongZhiDiZhi || ''
+      }
+    }
+  } catch (e) {
+    // 读取失败保留默认表单
+  }
+}
+
+const baoCunZhiFu = async () => {
+  zhiFuBaoCunZhong.value = true
+  try {
+    const res = await jieKou.adminZhiFuBaoCun(zhiFu.value)
+    if (res.data.chengGong) {
+      ElMessage.success('支付配置已保存')
+      jiaZaiZhiFu()
+    } else {
+      ElMessage.error(res.data.xinXi || '保存失败')
+    }
+  } finally {
+    zhiFuBaoCunZhong.value = false
+  }
+}
+
+const qieHuanZhiFuZt = async (shi) => {
+  const zhuangTai = shi ? 1 : 0
+  if (!zhiFu.value.id) {
+    zhiFu.value.zhuangTai = zhuangTai
+    ElMessage.info('配置已记录，点「保存配置」后生效')
+    return
+  }
+  const res = await jieKou.adminZhiFuZhuangTai(zhiFu.value.id, zhuangTai)
+  if (res.data.chengGong) {
+    zhiFu.value.zhuangTai = zhuangTai
+    ElMessage.success(zhuangTai === 1 ? '已启用支付' : '已停用支付')
+  } else {
+    ElMessage.error(res.data.xinXi || '操作失败')
+  }
+}
+
+// ===== 提现管理：审核卖家提现申请，线下打款后标记完成 =====
+const tiXianLieBiao = ref([])
+const tiXianZt = ref(null)
+const tiXianKw = ref('')
+const daiShenHeShu = ref(0)
+
+const shiJianWenBen = (zhi) => {
+  if (!zhi) return '—'
+  const d = new Date(zhi)
+  if (isNaN(d.getTime())) return String(zhi)
+  const buLing = (n) => (n < 10 ? '0' + n : '' + n)
+  return d.getFullYear() + '-' + buLing(d.getMonth() + 1) + '-' + buLing(d.getDate()) + ' ' + buLing(d.getHours()) + ':' + buLing(d.getMinutes())
+}
+
+const jiaZaiTiXian = async () => {
+  try {
+    const res = await jieKou.adminTiXian(tiXianZt.value, tiXianKw.value)
+    if (res.data.chengGong) {
+      tiXianLieBiao.value = res.data.lieBiao || []
+      daiShenHeShu.value = res.data.daiShenHe || 0
+    } else {
+      ElMessage.error(res.data.xinXi || '加载失败')
+    }
+  } catch (e) {
+    ElMessage.error('加载提现列表失败')
+  }
+}
+
+const chuLiTiXian = async (hang, jieGuo) => {
+  let beiZhu = ''
+  if (jieGuo === 'bohui') {
+    try {
+      const r = await ElMessageBox.prompt('填写驳回原因，金额会退回该用户余额', '驳回提现', {
+        inputPlaceholder: '如：收款账号与姓名不一致，请核对后重新提交',
+        inputValidator: (v) => (v && v.trim().length > 0) || '请填写驳回原因',
+        type: 'warning'
+      })
+      beiZhu = r.value.trim()
+    } catch (e) {
+      return
+    }
+  } else {
+    try {
+      await ElMessageBox.confirm('确认已向「' + hang.yongHuMing + '」线下打款 ￥' + Number(hang.jinE || 0).toFixed(2) + ' 吗？', '提现打款', { type: 'warning' })
+    } catch (e) {
+      return
+    }
+  }
+  const res = await jieKou.adminTiXianChuLi(hang.id, jieGuo, beiZhu)
+  if (res.data.chengGong) { ElMessage.success(res.data.xinXi || '已处理'); jiaZaiTiXian() }
+  else ElMessage.error(res.data.xinXi || '处理失败')
+}
+
+const shanChuTiXian = async (hang) => {
+  try {
+    await ElMessageBox.confirm('确定删除这条提现记录吗？', '删除记录', { type: 'warning' })
+  } catch (e) {
+    return
+  }
+  const res = await jieKou.adminTiXianShanChu(hang.id)
+  if (res.data.chengGong) { ElMessage.success('已删除'); jiaZaiTiXian() }
+  else ElMessage.error(res.data.xinXi || '删除失败')
+}
+
+// ===== 私信管理：管理员作为发布者直接与买家对话 =====
+const xiaoXiHuiHua = ref([])
+const xiaoXiDangQian = ref(null)
+const xiaoXiLie = ref([])
+const xiaoXiNeiRong = ref('')
+const xiaoXiWeiDu = ref(0)
+const xiaoXiFaSongZhong = ref(false)
+const xxGunRef = ref(null)
+let xiaoXiLunXun = null
+
+const huiHuaJian = (h) => (h.duiFangId || 0) + '_' + (h.shangPinId || 0)
+
+const xiaoXiShiJian = (zhi) => {
+  if (!zhi) return ''
+  const shi = new Date(zhi)
+  if (isNaN(shi.getTime())) return ''
+  const buLing = (n) => (n < 10 ? '0' + n : '' + n)
+  return (shi.getMonth() + 1) + '-' + buLing(shi.getDate()) + ' ' + buLing(shi.getHours()) + ':' + buLing(shi.getMinutes())
+}
+
+const xxGunDaoDi = () => {
+  const he = xxGunRef.value
+  if (he) he.scrollTop = he.scrollHeight
+}
+
+// 点商品卡片，在新窗口打开前台商品详情，方便管理员核对商品
+const kanShangPin = (id) => {
+  if (!id) return
+  window.open('/shangpin/' + id, '_blank')
+}
+
+const jiaZaiXiaoXi = async () => {
+  const id = guanLiYuan.value.id
+  if (!id) return
+  try {
+    const huiHuaRes = await jieKou.xiaoXiHuiHua(id)
+    if (huiHuaRes.data.chengGong) xiaoXiHuiHua.value = huiHuaRes.data.lieBiao || []
+    if (xiaoXiDangQian.value) {
+      const jian = huiHuaJian(xiaoXiDangQian.value)
+      const xin = xiaoXiHuiHua.value.find((h) => huiHuaJian(h) === jian)
+      if (xin) xiaoXiDangQian.value = xin
+    }
+    const weiDuRes = await jieKou.xiaoXiWeiDu(id)
+    if (weiDuRes.data.chengGong) xiaoXiWeiDu.value = weiDuRes.data.weiDuShu || 0
+  } catch (e) {
+    // 私信加载失败不影响后台其它功能
+  }
+}
+
+const jiaZaiXiaoXiLie = async () => {
+  if (!xiaoXiDangQian.value || !xiaoXiDangQian.value.shangPinId) {
+    xiaoXiLie.value = []
+    return
+  }
+  try {
+    const res = await jieKou.xiaoXiLieBiao(
+      guanLiYuan.value.id, xiaoXiDangQian.value.duiFangId, xiaoXiDangQian.value.shangPinId
+    )
+    if (res.data.chengGong) xiaoXiLie.value = res.data.lieBiao || []
+  } catch (e) {
+    // 加载失败保留原有记录
+  }
+}
+
+const daKaiHuiHua = async (h) => {
+  xiaoXiDangQian.value = h
+  xiaoXiLie.value = []
+  await jiaZaiXiaoXiLie()
+  h.weiDuShu = 0
+  await jiaZaiXiaoXi()
+  await nextTick()
+  xxGunDaoDi()
+}
+
+const huiFu = async () => {
+  const wenBen = xiaoXiNeiRong.value.trim()
+  if (!xiaoXiDangQian.value) return
+  if (!wenBen) {
+    ElMessage.warning('请输入回复内容')
+    return
+  }
+  xiaoXiFaSongZhong.value = true
+  try {
+    const res = await jieKou.faSongXiaoXi({
+      faSongRenId: guanLiYuan.value.id,
+      jieShouRenId: xiaoXiDangQian.value.duiFangId,
+      shangPinId: xiaoXiDangQian.value.shangPinId,
+      neiRong: wenBen
+    })
+    if (res.data.chengGong) {
+      xiaoXiLie.value.push(res.data.xiaoXi)
+      xiaoXiNeiRong.value = ''
+      ElMessage.success('回复已发送')
+      const jian = huiHuaJian(xiaoXiDangQian.value)
+      await jiaZaiXiaoXi()
+      const xin = xiaoXiHuiHua.value.find((h) => huiHuaJian(h) === jian)
+      if (xin) xiaoXiDangQian.value = xin
+      await nextTick()
+      xxGunDaoDi()
+    } else {
+      ElMessage.error(res.data.xinXi || '发送失败')
+    }
+  } finally {
+    xiaoXiFaSongZhong.value = false
+  }
+}
+
 onMounted(() => {
   if (!guanLiYuan.value.id) { luYou.push('/admin/login'); return }
+  // 支持 /admin?tab=shangpin 这类链接直接定位到对应菜单
+  const keYongBiao = ['shouye', 'yonghu', 'shangpin', 'dingdan', 'xiaoxi', 'fenlei', 'zhifu', 'tixian', 'lunbo', 'gonggao', 'ai', 'zhuangxiu']
+  const tab = luYouXin.query.tab
+  if (tab && tab !== 'shouye' && keYongBiao.includes(tab)) qieHuan(tab)
   loadTongJi()
   jieKou.adminFenLei().then(res => { if (res.data.chengGong) fenLeiLie.value = res.data.lieBiao })
+  jiaZaiXiaoXi()
+  // 进入私信页后定时刷新，买家新消息能自动出现
+  xiaoXiLunXun = setInterval(async () => {
+    if (active.value !== 'xiaoxi') return
+    await jiaZaiXiaoXi()
+    if (xiaoXiDangQian.value) await jiaZaiXiaoXiLie()
+  }, 15000)
+})
+
+onUnmounted(() => {
+  if (xiaoXiLunXun) clearInterval(xiaoXiLunXun)
 })
 </script>
 
@@ -1707,4 +2173,53 @@ onMounted(() => {
 .suoFangBiaoQian { font-size: 12.5px; color: #7a869a; flex-shrink: 0; }
 .suoFangHang .el-slider { flex: 1; }
 .suoFangZhiBaiFen { font-size: 12.5px; color: #2f6bff; font-weight: 600; width: 40px; text-align: right; flex-shrink: 0; }
+
+/* ===== 私信管理 ===== */
+.caiDanDian { margin-left: 8px; }
+.caiDanDian :deep(.el-badge__content) { border: none; background: var(--hongSe); }
+.xiaoxiBu { display: flex; height: 560px; background: #fff; border: 1px solid var(--bianKuang); border-radius: 12px; overflow: hidden; }
+.xiaoxiLie { width: 300px; flex-shrink: 0; border-right: 1px solid var(--bianKuang); overflow-y: auto; background: #fbfcff; }
+.xiaoxiXiang { display: flex; gap: 10px; padding: 12px 14px; border-bottom: 1px solid #f1f4f9; cursor: pointer; transition: background .16s ease; }
+.xiaoxiXiang:hover { background: #f0f4ff; }
+.xiaoxiXiang.huoYue { background: linear-gradient(135deg, #eef3ff, #e9fbf8); }
+.xxTou { position: relative; width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; overflow: visible; background: var(--zhuTiDu); color: #fff; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.xxTou img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+.xxDian { position: absolute; top: -3px; right: -6px; min-width: 16px; height: 16px; padding: 0 4px; background: var(--hongSe); color: #fff; font-size: 10.5px; font-style: normal; line-height: 16px; text-align: center; border-radius: 999px; }
+.xxXin { flex: 1; min-width: 0; }
+.xxHang1 { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.xxHang1 b { font-size: 13.5px; color: var(--wenZi); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xxShiJian { font-size: 11px; color: var(--wenZiSan); flex-shrink: 0; }
+.xxHang2 { margin-top: 3px; font-size: 12.5px; color: var(--wenZiEr); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xxHang3 { margin-top: 4px; display: flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--wenZiSan); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xxHang3 .el-icon { font-size: 12px; color: var(--qingSe); }
+.xxHang3Tu { width: 24px; height: 24px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+.xxHang3Wen { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xiaoxiQu { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.xxShou { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 18px; border-bottom: 1px solid var(--bianKuang); font-size: 13.5px; color: var(--wenZi); }
+.xxShou b { color: var(--zhuSe); }
+.xxShouMing { flex-shrink: 0; }
+.xxKa { display: flex; align-items: center; gap: 10px; max-width: 380px; padding: 6px 10px; border: 1px solid var(--bianKuang); border-radius: 10px; cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease; }
+.xxKa:hover { border-color: #c9dbff; box-shadow: 0 4px 12px rgba(47, 107, 255, .1); }
+.xxKaTu { width: 40px; height: 40px; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.xxKaTu img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.xxKaZhan { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--beiJing); color: #b9c6da; }
+.xxKaWen { min-width: 0; }
+.xxKaTi { font-size: 12.5px; font-weight: 600; color: var(--wenZi); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xxKaJia { display: flex; align-items: baseline; gap: 8px; margin-top: 2px; }
+.xxKaJiaGe { font-size: 13px; font-weight: 800; color: var(--hongSe); }
+.xxKaFu { font-size: 11px; color: var(--wenZiSan); }
+.xxKaJian { color: var(--wenZiSan); font-size: 13px; flex-shrink: 0; }
+.xxGun { flex: 1; overflow-y: auto; padding: 18px; background: linear-gradient(180deg, #fbfcff 0%, #ffffff 60%); }
+.xxPao { margin-bottom: 14px; }
+.xxPao .xxNei { display: inline-block; max-width: 72%; padding: 9px 12px; font-size: 13.5px; line-height: 1.65; color: var(--wenZi); background: #f2f5fa; border-radius: 4px 12px 12px 12px; white-space: pre-wrap; word-break: break-word; }
+.xxPao.wo { text-align: right; }
+.xxPao.wo .xxNei { background: linear-gradient(135deg, #2f6bff 0%, #15c5b8 100%); color: #fff; border-radius: 12px 4px 12px 12px; }
+.xxShi { margin-top: 4px; font-size: 11px; color: var(--wenZiSan); }
+.xxShuRu { border-top: 1px solid var(--bianKuang); padding: 12px 16px; }
+.xxShuRuHang { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+
+/* ===== 支付配置 ===== */
+.zhiFuShuoMing { margin-top: 18px; max-width: 720px; }
+.daiShenHe { color: var(--hongSe); font-size: 14px; }
+.zhiFuShuoMing :deep(.el-alert__description) { font-size: 12.5px; line-height: 1.7; }
 </style>

@@ -1,4 +1,4 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 package com.ershoujiaoyi.entity;
 
 import jakarta.persistence.*;
@@ -25,6 +25,16 @@ public class YongHu {
     @Temporal(TemporalType.TIMESTAMP)
     private Date zhuCeShiJian;
 
+    /** 钱包可提现余额（订单完成确认收货后入账） */
+    @Column(name = "yu_e")
+    private Double yuE = 0.0;
+
+    /** 累计卖出收入（含已提现部分） */
+    private Double leiJiShouRu = 0.0;
+
+    /** 累计已提现金额 */
+    private Double leiJiTiXian = 0.0;
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getYongHuMing() { return yongHuMing; }
@@ -43,4 +53,10 @@ public class YongHu {
     public void setGuanLiYuan(Boolean guanLiYuan) { this.guanLiYuan = guanLiYuan; }
     public Date getZhuCeShiJian() { return zhuCeShiJian; }
     public void setZhuCeShiJian(Date zhuCeShiJian) { this.zhuCeShiJian = zhuCeShiJian; }
+    public Double getYuE() { return yuE; }
+    public void setYuE(Double yuE) { this.yuE = yuE; }
+    public Double getLeiJiShouRu() { return leiJiShouRu; }
+    public void setLeiJiShouRu(Double leiJiShouRu) { this.leiJiShouRu = leiJiShouRu; }
+    public Double getLeiJiTiXian() { return leiJiTiXian; }
+    public void setLeiJiTiXian(Double leiJiTiXian) { this.leiJiTiXian = leiJiTiXian; }
 }

@@ -1,4 +1,4 @@
-<!-- 作者：肖沐樑 QQ：3387432690 -->
+<!-- 作者：肖沐樑 QQ：2047419378 -->
 <template>
   <div class="dingDan">
     <div class="rongQi">
@@ -19,8 +19,9 @@
                 <div class="jiaGe">￥{{ d.jiaGe }}</div>
               </div>
               <div class="zhuangTaiQu">
-                <el-tag :type="zhuangTaiYanSe(d.zhuangTai)" effect="light" round>{{ zhuangTaiWenBen(d.zhuangTai) }}</el-tag>
+                <el-tag :type="zhuangTaiYanSe(d)" effect="light" round>{{ zhuangTaiWenBen(d) }}</el-tag>
                 <div class="caoZuo">
+                  <el-button v-if="d.zhiFuZhuangTai === 0 && d.zhuangTai === 0" size="small" type="danger" round @click="quZhiFu(d.id)">去支付</el-button>
                   <el-button v-if="d.zhuangTai === 1" size="small" type="success" round @click="sheZhi(d.id, 2)">确认收货</el-button>
                   <el-button v-if="d.zhuangTai === 0" size="small" plain round @click="sheZhi(d.id, 3)">取消订单</el-button>
                 </div>
@@ -42,9 +43,10 @@
                 <div class="jiaGe">￥{{ d.jiaGe }}</div>
               </div>
               <div class="zhuangTaiQu">
-                <el-tag :type="zhuangTaiYanSe(d.zhuangTai)" effect="light" round>{{ zhuangTaiWenBen(d.zhuangTai) }}</el-tag>
+                <el-tag :type="zhuangTaiYanSe(d)" effect="light" round>{{ zhuangTaiWenBen(d) }}</el-tag>
                 <div class="caoZuo">
                   <el-button v-if="d.zhuangTai === 0" size="small" type="primary" round @click="sheZhi(d.id, 1)">发货</el-button>
+                  <el-button v-if="d.zhiFuZhuangTai === 0 && d.zhiFuFangShi === 'huodao' && d.zhuangTai !== 3" size="small" type="warning" round @click="queRenShouKuan(d.id)">确认收款</el-button>
                 </div>
               </div>
             </div>
@@ -80,12 +82,33 @@ const jiaZai = async () => {
   if (res.data.chengGong) dingDanLieBiao.value = res.data.lieBiao
 }
 
-const zhuangTaiWenBen = (z) => ['待发货', '待收货', '已完成', '已取消'][z] || '未知'
-const zhuangTaiYanSe = (z) => ['warning', 'primary', 'success', 'info'][z] || 'info'
+// 状态要叠加付款情况：未付款时优先显示「待付款」
+const zhuangTaiWenBen = (d) => {
+  if (d.zhuangTai === 3) return '已取消'
+  if (d.zhuangTai === 2) return '已完成'
+  if (d.zhiFuZhuangTai === 0) return d.zhiFuFangShi === 'huodao' ? '待当面付款' : '待付款'
+  return ['待发货', '待收货', '已完成', '已取消'][d.zhuangTai] || '未知'
+}
+const zhuangTaiYanSe = (d) => {
+  if (d.zhuangTai === 3) return 'info'
+  if (d.zhuangTai === 2) return 'success'
+  if (d.zhiFuZhuangTai === 0) return 'danger'
+  return ['warning', 'primary', 'success', 'info'][d.zhuangTai] || 'info'
+}
 
 const sheZhi = async (id, z) => {
   const res = await jieKou.dingDanZhuangTai(id, z)
   if (res.data.chengGong) { ElMessage.success('操作成功'); jiaZai() }
+  else ElMessage.error(res.data.xinXi || '操作失败')
+}
+
+const quZhiFu = (id) => {
+  luYou.push('/zhifu/' + id)
+}
+
+const queRenShouKuan = async (id) => {
+  const res = await jieKou.zhiFuShouKuan(id)
+  if (res.data.chengGong) { ElMessage.success('已确认收款'); jiaZai() }
   else ElMessage.error(res.data.xinXi || '操作失败')
 }
 

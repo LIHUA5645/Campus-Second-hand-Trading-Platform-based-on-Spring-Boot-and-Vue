@@ -1,7 +1,8 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 package com.ershoujiaoyi.controller;
 
 import com.ershoujiaoyi.entity.ShangPin;
+import com.ershoujiaoyi.entity.YongHu;
 import com.ershoujiaoyi.repository.ShangPinRepository;
 import com.ershoujiaoyi.repository.YongHuRepository;
 import com.ershoujiaoyi.service.TuiJianFuWu;
@@ -88,13 +89,22 @@ public class ShangPinKongZhiQi {
     }
 
     @PutMapping("/xiugai")
-    public Map<String, Object> xiugai(@RequestBody ShangPin shangPin) {
+    public Map<String, Object> xiugai(@RequestBody ShangPin shangPin,
+                                      @RequestHeader(value = "YongHuId", required = false) Long yongHuId) {
         Map<String, Object> jieGuo = new HashMap<>();
+        if (shangPin.getId() == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "缺少商品编号");
+            return jieGuo;
+        }
         ShangPin yuan = shangPinRepository.findById(shangPin.getId()).orElse(null);
         if (yuan == null) {
             jieGuo.put("chengGong", false);
             jieGuo.put("xinXi", "商品不存在");
             return jieGuo;
+        }
+        if (!keYiGuanLi(yuan, yongHuId)) {
+            return wuQuanXian();
         }
         if (shangPin.getBiaoTi() != null) yuan.setBiaoTi(shangPin.getBiaoTi());
         if (shangPin.getMiaoShu() != null) yuan.setMiaoShu(shangPin.getMiaoShu());
@@ -108,7 +118,8 @@ public class ShangPinKongZhiQi {
     }
 
     @PostMapping("/xiajia")
-    public Map<String, Object> xiajia(@RequestParam Long id) {
+    public Map<String, Object> xiajia(@RequestParam Long id,
+                                      @RequestHeader(value = "YongHuId", required = false) Long yongHuId) {
         Map<String, Object> jieGuo = new HashMap<>();
         ShangPin yuan = shangPinRepository.findById(id).orElse(null);
         if (yuan == null) {
@@ -116,9 +127,75 @@ public class ShangPinKongZhiQi {
             jieGuo.put("xinXi", "商品不存在");
             return jieGuo;
         }
+        if (!keYiGuanLi(yuan, yongHuId)) {
+            return wuQuanXian();
+        }
         yuan.setZhuangTai(2);
         shangPinRepository.save(yuan);
         jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    /** 重新上架：下架的商品可以再次挂出 */
+    @PostMapping("/shangjia")
+    public Map<String, Object> shangjia(@RequestParam Long id,
+                                        @RequestHeader(value = "YongHuId", required = false) Long yongHuId) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        ShangPin yuan = shangPinRepository.findById(id).orElse(null);
+        if (yuan == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "商品不存在");
+            return jieGuo;
+        }
+        if (!keYiGuanLi(yuan, yongHuId)) {
+            return wuQuanXian();
+        }
+        if (yuan.getZhuangTai() != null && yuan.getZhuangTai() == 1) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "商品已售出，无法上架");
+            return jieGuo;
+        }
+        yuan.setZhuangTai(0);
+        shangPinRepository.save(yuan);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    /** 删除商品：历史订单与聊天记录保留，仅移除商品本身 */
+    @PostMapping("/shanchu")
+    public Map<String, Object> shanchu(@RequestParam Long id,
+                                       @RequestHeader(value = "YongHuId", required = false) Long yongHuId) {
+        Map<String, Object> jieGuo = new HashMap<>();
+        ShangPin yuan = shangPinRepository.findById(id).orElse(null);
+        if (yuan == null) {
+            jieGuo.put("chengGong", false);
+            jieGuo.put("xinXi", "商品不存在");
+            return jieGuo;
+        }
+        if (!keYiGuanLi(yuan, yongHuId)) {
+            return wuQuanXian();
+        }
+        shangPinRepository.deleteById(id);
+        jieGuo.put("chengGong", true);
+        return jieGuo;
+    }
+
+    /** 只有发布者本人或管理员可以管理该商品 */
+    private boolean keYiGuanLi(ShangPin shangPin, Long yongHuId) {
+        if (shangPin == null || shangPin.getYongHuId() == null || yongHuId == null) {
+            return false;
+        }
+        if (shangPin.getYongHuId().equals(yongHuId)) {
+            return true;
+        }
+        YongHu yongHu = yongHuRepository.findById(yongHuId).orElse(null);
+        return yongHu != null && Boolean.TRUE.equals(yongHu.getGuanLiYuan());
+    }
+
+    private Map<String, Object> wuQuanXian() {
+        Map<String, Object> jieGuo = new HashMap<>();
+        jieGuo.put("chengGong", false);
+        jieGuo.put("xinXi", "只能管理自己发布的商品");
         return jieGuo;
     }
 

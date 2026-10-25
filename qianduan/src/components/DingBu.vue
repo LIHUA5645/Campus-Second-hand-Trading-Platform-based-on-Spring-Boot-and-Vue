@@ -1,4 +1,4 @@
-<!-- 作者：肖沐樑 QQ：3387432690 -->
+<!-- 作者：肖沐樑 QQ：2047419378 -->
 <template>
   <header class="dingBu">
     <div class="rongQi neiBu">
@@ -23,6 +23,11 @@
         </el-button>
         <template v-if="yongHu">
           <el-button text @click="luYou.push('/fabu')"><el-icon><Plus /></el-icon> 发布</el-button>
+          <el-button text @click="luYou.push('/wode')"><el-icon><Goods /></el-icon> 我的发布</el-button>
+          <el-button text @click="luYou.push('/qianbao')"><el-icon><Wallet /></el-icon> 钱包</el-button>
+          <el-badge :value="weiDuShu" :max="99" :hidden="!weiDuShu" class="xiaoXiDian">
+            <el-button text @click="luYou.push('/xiaoxi')"><el-icon><ChatDotRound /></el-icon> 消息</el-button>
+          </el-badge>
           <el-button text @click="luYou.push('/dingdan')"><el-icon><List /></el-icon> 订单</el-button>
           <el-dropdown @command="chuLi">
             <span class="yongHu">
@@ -35,7 +40,10 @@
               <el-dropdown-menu>
                 <el-dropdown-item command="geren"><el-icon><User /></el-icon> 个人中心</el-dropdown-item>
                 <el-dropdown-item command="fabu"><el-icon><Plus /></el-icon> 发布商品</el-dropdown-item>
+                <el-dropdown-item command="wode"><el-icon><Goods /></el-icon> 我发布的</el-dropdown-item>
+                <el-dropdown-item command="qianbao"><el-icon><Wallet /></el-icon> 我的钱包</el-dropdown-item>
                 <el-dropdown-item command="dingdan"><el-icon><List /></el-icon> 我的订单</el-dropdown-item>
+                <el-dropdown-item command="xiaoxi"><el-icon><ChatDotRound /></el-icon> 我的消息</el-dropdown-item>
                 <el-dropdown-item command="tuiChu" divided><el-icon><SwitchButton /></el-icon> 退出登录</el-dropdown-item>
               </el-dropdown-menu>
             </template>
@@ -48,7 +56,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import jieKou from '@/api/jieKou'
 
@@ -57,6 +65,8 @@ const luYouXin = useRoute()
 const yongHu = ref(null)
 const guanJianCi = ref('')
 const aiTouXiang = ref('')
+const weiDuShu = ref(0)
+let weiDuJiShi = null
 
 const aiDianJi = () => {
   luYou.push('/ai')
@@ -67,6 +77,20 @@ const huoQu = () => {
   yongHu.value = y ? JSON.parse(y) : null
 }
 
+// 顶栏未读私信小红点
+const huoQuWeiDu = async () => {
+  if (!yongHu.value) {
+    weiDuShu.value = 0
+    return
+  }
+  try {
+    const res = await jieKou.xiaoXiWeiDu(yongHu.value.id)
+    if (res.data.chengGong) weiDuShu.value = res.data.weiDuShu || 0
+  } catch (e) {
+    // 网络异常时保留上次的未读数
+  }
+}
+
 const souSuo = () => {
   luYou.push({ path: '/shouye', query: { kw: guanJianCi.value || undefined } })
 }
@@ -75,6 +99,7 @@ const chuLi = (mingLing) => {
   if (mingLing === 'tuiChu') {
     localStorage.removeItem('yongHu')
     yongHu.value = null
+    weiDuShu.value = 0
     luYou.push('/shouye')
   } else {
     luYou.push('/' + mingLing)
@@ -85,10 +110,24 @@ onMounted(async () => {
   huoQu()
   guanJianCi.value = luYouXin.query.kw || ''
   window.addEventListener('storage', huoQu)
+  window.addEventListener('xiaoXiYiDu', huoQuWeiDu)
+  huoQuWeiDu()
+  weiDuJiShi = setInterval(huoQuWeiDu, 30000)
   try {
     const res = await jieKou.aiPeiZhi()
     if (res.data.chengGong && res.data.aiTouXiang) aiTouXiang.value = res.data.aiTouXiang
   } catch (e) { /* 头像获取失败仍显示图标 */ }
+})
+
+// 切换页面或登录状态变化时刷新未读数（从消息中心返回后小红点即时消失）
+watch(() => luYouXin.fullPath, () => {
+  huoQu()
+  huoQuWeiDu()
+})
+
+onUnmounted(() => {
+  if (weiDuJiShi) clearInterval(weiDuJiShi)
+  window.removeEventListener('xiaoXiYiDu', huoQuWeiDu)
 })
 </script>
 
@@ -100,6 +139,9 @@ onMounted(async () => {
 .pinPaiMing { font-size: 19px; font-weight: 800; background: var(--zhuTiDu); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
 .souSuo { flex: 1; max-width: 460px; }
 .daoHang { display: flex; align-items: center; gap: 4px; }
+.xiaoXiDian { display: inline-flex; align-items: center; margin: 0 4px; }
+.xiaoXiDian :deep(.el-badge__content) { border: none; background: var(--hongSe); }
+.xiaoXiDian :deep(.el-button) { margin-left: 0; }
 .aiRuKou { color: var(--zhuSe) !important; font-weight: 600; }
 .aiTouXiang {
   width: 24px;

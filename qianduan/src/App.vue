@@ -1,14 +1,14 @@
-<!-- 作者：肖沐樑 QQ：3387432690 -->
+<!-- 作者：肖沐樑 QQ：2047419378 -->
 <template>
   <div id="app">
     <DingBu v-if="!shiHouTai" />
     <router-view />
-    <DaShang />
+    <DaShang v-if="!shiHouTai" />
     <AiRuKou />
     <footer v-if="!shiHouTai" class="yeJiao">
       <div class="rongQi">
-        <p class="shouQuan">版权作者（软著）：添砖 Java QQ：2047419378 ｜ 项目所有者：肖沐樑 QQ：3387432690</p>
-        <p>技术交流 / 添砖 Java：QQ 2047419378 ｜ 商务合作：19877380122</p>
+        <p class="shouQuan">版权作者（软著）：肖沐樑 QQ：2047419378 ｜ 项目所有者：肖沐樑 QQ：2047419378</p>
+        <p>技术交流 / 肖沐樑：QQ 2047419378 ｜ 商务合作：19877380122</p>
         <p>如果觉得不错，欢迎
           <a href="https://gitee.com/zhang-san-zhangshan/esjypt" target="_blank" rel="noopener">Gitee Star ⭐</a>
           ｜

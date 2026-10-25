@@ -1,4 +1,4 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 import axios from 'axios'
 
 const http = axios.create({
@@ -47,6 +47,10 @@ export default {
   xiajia: (id) => http.post('/shangpin/xiajia?id=' + id),
   woDeShangPin: (yongHuId) => http.get('/shangpin/wode?yongHuId=' + yongHuId),
 
+  // 我的商品管理：重新上架 / 删除（后端校验必须是发布者本人）
+  shangjia: (id) => http.post('/shangpin/shangjia?id=' + id),
+  shanChuWoDeShangPin: (id) => http.post('/shangpin/shanchu?id=' + id),
+
   // 个性化推荐（基于物品的协同过滤）
   tuiJianLieBiao: (yongHuId, shu = 8) => http.get('/shangpin/tuijian', {
     params: { yongHuId: yongHuId || undefined, shu }
@@ -58,8 +62,53 @@ export default {
   fenLeiLieBiao: () => http.get('/fenlei/liebiao'),
 
   xiadan: (data) => http.post('/dingdan/xiadan', data),
+  dingDanXiangQing: (id) => http.get('/dingdan/xiangqing?id=' + id),
   woDeDingDan: (yongHuId, jiaoSe) => http.get('/dingdan/wode?yongHuId=' + yongHuId + '&jiaoSe=' + jiaoSe),
   dingDanZhuangTai: (id, zhuangTai) => http.put('/dingdan/zhuangtai?id=' + id + '&zhuangTai=' + zhuangTai),
+
+  // 支付：支付宝（沙箱/正式）网页支付 + 线下货到付款
+  zhiFuPeiZhi: () => http.get('/zhifu/peizhi'),
+  zhiFuXiaDan: (data) => http.post('/zhifu/xiadan', data),
+  zhiFuChaXun: (dingDanId) => http.get('/zhifu/chaxun?dingDanId=' + dingDanId),
+  zhiFuHuoDao: (dingDanId) => http.post('/zhifu/huodao?dingDanId=' + dingDanId),
+  zhiFuShouKuan: (dingDanId) => http.post('/zhifu/shoukuan?dingDanId=' + dingDanId),
+
+  // 我的钱包：余额 / 流水 / 提现
+  qianBao: () => http.get('/qianbao'),
+  qianBaoJiLu: () => http.get('/qianbao/jilu'),
+  woDeTiXian: () => http.get('/qianbao/tixian'),
+  shenQingTiXian: (data) => http.post('/qianbao/tixian', data),
+
+  // 管理员：提现管理
+  adminTiXian: (zhuangTai, guanJianCi) => http.get('/admin/tixian'
+    + (zhuangTai === null || zhuangTai === undefined || zhuangTai === '' ? '' : '?zhuangTai=' + zhuangTai)
+    + ((guanJianCi ? (zhuangTai === null || zhuangTai === undefined || zhuangTai === '' ? '?' : '&') + 'guanJianCi=' + encodeURIComponent(guanJianCi) : ''))
+    , { headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id } }),
+  adminTiXianChuLi: (id, jieGuo, beiZhu) => http.post('/admin/tixian/chuli?id=' + id
+    + '&jieGuo=' + jieGuo + (beiZhu ? '&beiZhu=' + encodeURIComponent(beiZhu) : ''), null, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminTiXianShanChu: (id) => http.post('/admin/tixian/shanchu?id=' + id, null, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+
+  // 管理员：支付配置
+  adminZhiFu: () => http.get('/admin/zhifu', {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminZhiFuBaoCun: (data) => http.post('/admin/zhifu/baocun', data, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+  adminZhiFuZhuangTai: (id, zhuangTai) => http.post('/admin/zhifu/zhuangtai?id=' + id + '&zhuangTai=' + zhuangTai, null, {
+    headers: { 'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id }
+  }),
+
+  // 站内私信：买家在商品详情页联系发布者
+  faSongXiaoXi: (data) => http.post('/xiaoxi/fasong', data),
+  xiaoXiHuiHua: (yongHuId) => http.get('/xiaoxi/huihua?yongHuId=' + yongHuId),
+  xiaoXiLieBiao: (yongHuId, duiFangId, shangPinId) =>
+    http.get('/xiaoxi/liebiao?yongHuId=' + yongHuId + '&duiFangId=' + duiFangId + '&shangPinId=' + shangPinId),
+  xiaoXiWeiDu: (yongHuId) => http.get('/xiaoxi/weidu?yongHuId=' + yongHuId),
 
   // 管理员
   adminDengLu: (yongHuMing, miMa) => http.post('/admin/denglu?yongHuMing=' + yongHuMing + '&miMa=' + miMa),
@@ -126,6 +175,11 @@ export default {
       'Content-Type': 'multipart/form-data',
       'GuanLiYuanId': (JSON.parse(localStorage.getItem('guanLiYuan') || '{}') || {}).id
     },
+    timeout: 30000
+  }),
+  // 普通用户发布商品时上传商品图（YongHuId 由拦截器自动携带）
+  shangChuanShangPinTuYongHu: (biaoDan) => http.post('/upload/tuxiang?leiBie=shangpin', biaoDan, {
+    headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 30000
   }),
 

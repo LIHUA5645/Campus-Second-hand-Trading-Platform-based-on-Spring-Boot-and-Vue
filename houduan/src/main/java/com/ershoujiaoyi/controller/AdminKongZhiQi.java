@@ -1,4 +1,4 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 package com.ershoujiaoyi.controller;
 
 import com.ershoujiaoyi.entity.DingDan;
@@ -283,12 +283,17 @@ public class AdminKongZhiQi {
     @GetMapping("/shangPin")
     public Map<String, Object> shangPin(@RequestParam(defaultValue = "0") int yeMa,
                                        @RequestParam(defaultValue = "10") int meiYe,
-                                       @RequestParam(required = false) String guanJianCi) {
+                                       @RequestParam(required = false) String guanJianCi,
+                                       @RequestParam(required = false) String faBuZhe) {
         Map<String, Object> jieGuo = new HashMap<>();
         Specification<ShangPin> tiaoJian = (root, query, cb) -> {
             List<Predicate> list = new ArrayList<>();
             if (guanJianCi != null && !guanJianCi.isEmpty()) {
                 list.add(cb.like(root.get("biaoTi"), "%" + guanJianCi + "%"));
+            }
+            // 按发布者昵称/用户名筛选，方便找到普通用户发布的商品
+            if (faBuZhe != null && !faBuZhe.isEmpty()) {
+                list.add(cb.like(root.get("yongHuMing"), "%" + faBuZhe + "%"));
             }
             return cb.and(list.toArray(new Predicate[0]));
         };

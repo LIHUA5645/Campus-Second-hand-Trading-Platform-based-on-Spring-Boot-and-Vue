@@ -1,4 +1,4 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 package com.ershoujiaoyi.entity;
 
 import jakarta.persistence.*;
@@ -22,6 +22,16 @@ public class DingDan {
     private String liuYan;
     // 状态：0待发货 1待收货 2已完成 3已取消
     private Integer zhuangTai;
+
+    // 支付：0 未付款 1 已付款（历史订单为 null，按原状态展示）
+    private Integer zhiFuZhuangTai;
+    // 支付方式：alipay 支付宝 / huodao 货到付款（线下当面交易）
+    private String zhiFuFangShi;
+    // 支付宝交易号
+    private String jiaoYiHao;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date zhiFuShiJian;
+
     @Temporal(TemporalType.TIMESTAMP)
     private Date xiaDanShiJian;
 
@@ -47,6 +57,14 @@ public class DingDan {
     public void setLiuYan(String liuYan) { this.liuYan = liuYan; }
     public Integer getZhuangTai() { return zhuangTai; }
     public void setZhuangTai(Integer zhuangTai) { this.zhuangTai = zhuangTai; }
+    public Integer getZhiFuZhuangTai() { return zhiFuZhuangTai; }
+    public void setZhiFuZhuangTai(Integer zhiFuZhuangTai) { this.zhiFuZhuangTai = zhiFuZhuangTai; }
+    public String getZhiFuFangShi() { return zhiFuFangShi; }
+    public void setZhiFuFangShi(String zhiFuFangShi) { this.zhiFuFangShi = zhiFuFangShi; }
+    public String getJiaoYiHao() { return jiaoYiHao; }
+    public void setJiaoYiHao(String jiaoYiHao) { this.jiaoYiHao = jiaoYiHao; }
+    public Date getZhiFuShiJian() { return zhiFuShiJian; }
+    public void setZhiFuShiJian(Date zhiFuShiJian) { this.zhiFuShiJian = zhiFuShiJian; }
     public Date getXiaDanShiJian() { return xiaDanShiJian; }
     public void setXiaDanShiJian(Date xiaDanShiJian) { this.xiaDanShiJian = xiaDanShiJian; }
 }

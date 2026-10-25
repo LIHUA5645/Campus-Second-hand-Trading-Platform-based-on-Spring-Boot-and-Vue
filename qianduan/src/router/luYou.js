@@ -1,10 +1,15 @@
-// 作者：肖沐樑 QQ：3387432690
+// 作者：肖沐樑 QQ：2047419378
 import { createRouter, createWebHistory } from 'vue-router'
 import DengLu from '@/views/DengLu.vue'
 import ShouYe from '@/views/ShouYe.vue'
 import ShangPinXiangQing from '@/views/ShangPinXiangQing.vue'
 import FaBuShangPin from '@/views/FaBuShangPin.vue'
 import WoDeDingDan from '@/views/WoDeDingDan.vue'
+import WoDeShangPin from '@/views/WoDeShangPin.vue'
+import QianBao from '@/views/QianBao.vue'
+import XiaoXiZhongXin from '@/views/XiaoXiZhongXin.vue'
+import ZhiFuTai from '@/views/ZhiFuTai.vue'
+import ZhiFuJieGuo from '@/views/ZhiFuJieGuo.vue'
 import GeRenZhongXin from '@/views/GeRenZhongXin.vue'
 import GuanLiDengLu from '@/views/GuanLiDengLu.vue'
 import GuanLi from '@/views/GuanLi.vue'
@@ -18,7 +23,12 @@ const luYou = createRouter({
     { path: '/shouye', component: ShouYe },
     { path: '/shangpin/:id', component: ShangPinXiangQing },
     { path: '/fabu', component: FaBuShangPin },
+    { path: '/wode', component: WoDeShangPin },
+    { path: '/qianbao', component: QianBao },
     { path: '/dingdan', component: WoDeDingDan },
+    { path: '/xiaoxi', component: XiaoXiZhongXin },
+    { path: '/zhifu/jieguo', component: ZhiFuJieGuo },
+    { path: '/zhifu/:id', component: ZhiFuTai },
     { path: '/geren', component: GeRenZhongXin },
     { path: '/ai', component: AiZhuShou },
     { path: '/admin/login', component: GuanLiDengLu },
